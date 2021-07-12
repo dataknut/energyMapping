@@ -1,0 +1,168 @@
+
+title: "Test Maps"
+author: Meghan Kinglsey-Walsh
+date: 'Last run at: 'r Sys.time()''
+output:
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(raster)
+library(sf)
+library(spData)
+library(spDataLarge)
+library(dplyr)
+dataFolder<-"/Users/megha/Desktop/1. Uni/Masters/Project/Mapping Code/data/"
+```
+
+##Examine World Dataset
+```{r Mapping population of the world (using ggplot2)}
+head(world)
+library(ggplot2)
+ggplot2::ggplot(world)+
+  geom_sf(aes(fill = pop))#draws blue map
+ggplot2::ggplot(world) + 
+  geom_sf(aes(fill = pop/1000000)) +
+  scale_fill_continuous(name="Population (millions)",
+                        low = "green",
+                        high = "red") #changing colours
+
+```
+
+##Mapping the Local Authority
+###Mapping Domestic
+
+####Mapping the Electricity Consumption
+```{r loading in Local Authority electricity consumption data}
+library(readr)
+inFile <-paste0(dataFolder, "energy/Subnational_electricity_consumption_statistics_2019.csv")
+la_elecData <- readr::read_csv(inFile)
+summary(la_elecData)
+
+```
+```{r Loading in the Boundary Data for local authorities we are intrested in}
+geo_query <- "https://ons-inspire.esriuk.com/arcgis/rest/services/Administrative_Boundaries/Local_Authority_Districts_December_2018_Boundaries_UK_BGC/MapServer/0/query?where=lad18nm%20IN%20(%27Southampton%27,%27Portsmouth%27,%27Winchester%27,%27Eastleigh%27,%27Isle%20of%20Wight%27,%27Fareham%27,%27Gosport%27,%27Test%20Valley%27,%27East%20Hampshire%27,%27Havant%27,%27New%20Forest%27,%27Hart%27,%27Basingstoke%20and%20Deane%27)&outFields=lad18cd,lad18nm,long,lat&outSR=4326&f=geojson"
+#This only includes the ones we are interested in i.e the Solent
+message("Loading LA geometry from ONS Open Geography API") #Specifying the location message
+la_sf_data <- sf::st_read(geo_query)
+head(la_sf_data)
+```
+```{r Mapping the local authority electricty consumption}
+library(ggplot2)
+la_elecData$lad18cd <- la_elecData$`LA Code`#Creating a variable with the local authority code in the same name of the consumption data
+la_merged_sf <- merge(la_sf_data, la_elecData)#Merge the local Authority boundaries and the consumption data
+ggplot2::ggplot(la_merged_sf) +
+  geom_sf(aes(fill = Total_GWh))+scale_fill_gradient(low="green",high="red")
+
+```
+###Mapping Transport
+```{r Loading the Transport consumption data}
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##Mapping the Middle Layer Super Output Areas (MSOA)
+###Mapping Domestic
+####Mapping the Electricity Consumption
+```{r Loading in the MSOA electricity consumption data}
+# electricity consumption data at MSOA level (pre downloaded)
+inFile <-paste0(dataFolder, "energy/MSOA_DOM_ELEC_2019.csv")
+msoa_elecData <- readr::read_csv(inFile)
+head(msoa_elecData)
+```
+
+```{r Loading in the Boundary Data for the MSOA}
+inf <-paste0(dataFolder, "boundaries/MSOA/msoa_solent.shp")
+message("Loading Middle Layer Super Output Area (MSOA) from the ONS Open Georgraphy API")
+#When using shp files you might also need to have other supplementary files in the same folder to allow it to run https://cfss.uchicago.edu/notes/simple-features/
+msoa_sf_data <- sf::read_sf(inf) 
+head (msoa_sf_data)
+table(msoa_sf_data$LAD11NM)#how many MSOAs are in each LA
+```
+```{r Mapping the electrcity consumption of the MSOAs}
+msoa_elecData$MSOA11CD <- msoa_elecData$ 'Middle Layer Super Output Area (MSOA) Code' #Creating a variable with the LA code and the name as in the sf_data
+msoa_merged_sf <-merge(msoa_sf_data, msoa_elecData)
+ggplot2::ggplot(msoa_merged_sf) + 
+  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Solent (all MSOAs)")
+#mapping it
+```
+
+##Mapping the Lower Layer Super Output Area (LSOA)
+###mapping Domestic
+####Mapping Electricity consumption
+```{r Loading in the LSOA electricty consumption data}
+#Electricty consumption data LSOA pre downloaded
+inFile <-paste0(dataFolder, "energy/LSOA_ELEC_2019.csv")
+lsoa_elecData <- readr::read_csv(inFile)
+lsoa_elecData$LSOA11CD <- lsoa_elecData$`Lower Layer Super Output Area (LSOA) Code`
+head(msoa_elecData)
+```
+
+```{r Loading in boundary data for the LSOA}
+#The LSOA boundaries for the Solent have been pre-downloaded
+inf<-paste0(dataFolder, "boundaries/LSOA/lsoa_solent.shp")
+message ("Loading LSOA boundaries from ONS Open geography API")
+lsoa_sf_data <- sf::read_sf(inf)
+head(lsoa_sf_data)
+table(lsoa_sf_data$LAD11NM)#How many LSOAs are there in each LA
+```
+```{r Mapping the electricty consumption of the LSOAs}
+lsoa_merged_sf <- merge(lsoa_sf_data, lsoa_elecData) #merging the boundaries and energy data
+ggplot2::ggplot(lsoa_merged_sf) + 
+  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
+  scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Solent (all LSOAs)")
+#Mapping it
+```
+#####Looking at cities in more detail
+```{r Looking at the cities in more detail}
+#Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
+library(dplyr) # for filter, had to install this package
+mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Southampton")
+
+# plotting the elctricity consumption of Southampton in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
+  scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Southampton")
+```
+
+###Mapping the Indices of Multiple Deprivation (JUST PLACE HOLDER DOESN'T WORK)
+```{r Loading in the Indices of Multiple Deprivation data}
+# Multiple deprivation data at MSOA pre downloaded
+inFile <-paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv")
+lsoa_multidep <- readr::read_csv (inFile)
+head(lsoa_multidep)
+```
+```{r Mapping the Indices of deprevation for the LSOA}
+lsoa_multidep$LSOA11CD <- lsoa_multidep$lsoa11cd #creating a variable with the LA code in the same name as in sf_data
+head(lsoa_multidep)
+lsoa_multidep_merged_sf <- merge(lsoa_sf_data, lsoa_multidep) #merging these
+ggplot2::ggplot(lsoa_multidep_merged_sf)+geom_sf(aes(fill=IMDScore))+scale_fill_continuous(name="(Text)IMDScore", low="green",high="red")+labs(caption ="Solent (all MSOAs)")
+```
