@@ -48,11 +48,9 @@ message("dataFolder: ", dataFolder)
 ```
 
 
-## Mapping the Local Authority
+# Mapping the Local Authority
 
-### Mapping Domestic
-
-#### Mapping Electricity Consumption
+## Mapping Domestic Electricity Consumption
 
 ```{r loading in Local Authority electricity consumption data}
 inFile <-paste0(dataFolder, "energy/Subnational_electricity_consumption_statistics_2019.csv")
@@ -81,7 +79,7 @@ ggplot2::ggplot(la_merged_sf) +
 
 ```
 
-### Mapping Transport
+## Mapping Transport
 
 #### Freight
 ```{r Loading the  Freight Transport consumption data for the Local Autority}
@@ -111,11 +109,11 @@ ggplot2::ggplot(la_merged_Transp) +
   scale_fill_gradient(name = "Personal: Thousand tonnes of oil equivalent (ktoe)", low="green",high="red") 
 ```
 
-## Mapping the Middle Layer Super Output Areas (MSOA)
+# Mapping the Middle Layer Super Output Areas (MSOA)
 
-### Mapping Domestic
+## Mapping Domestic
 
-#### Mapping the Electricity Consumption
+### Mapping the Electricity Consumption
 
 ```{r Loading in the MSOA electricity consumption data}
 # electricity consumption data at MSOA level (pre downloaded)
@@ -143,7 +141,7 @@ ggplot2::ggplot(msoa_merged_sf) +
 #mapping it
 ```
 
-#### Mapping the Gas
+### Mapping the Gas
 ```{r Loading in the MSOA gas consumption data}
 # gas consumption data at MSOA level (pre downloaded)
 inFile <-paste0(dataFolder, "energy/MSOA_GAS_2019.csv")
@@ -161,8 +159,9 @@ ggplot2::ggplot(msoa_merged_sf_domgas) +
 ```
 > Does this match to non-gas areas??
 
-### Mapping Commercial
-#### Mapping Electricty
+
+## Mapping Commercial
+### Mapping Electricty
 ```{r Loading in the MSOA electricity consumption data for industry }
 # electricity consumption data for industry at MSOA level (pre downloaded)
 inFile <-paste0(dataFolder, "energy/MSOA_NONDOM_2019.csv")
@@ -179,7 +178,7 @@ ggplot2::ggplot(msoa_merged_sf_nondom) +
   labs(caption = "Solent (all MSOAs)")
 #mapping it
 ```
-#### Mapping Gas
+### Mapping Gas
 
 ```{r Loading in the MSOA gas consumption data for industry }
 # gas consumption data for industry at MSOA level (pre downloaded)
@@ -199,11 +198,12 @@ ggplot2::ggplot(msoa_merged_sf_nondom_gas) +
 ```
 > The holes tell you where there is no non-domestic gas use
 
-## Mapping the Lower Layer Super Output Area (LSOA)
 
-### Mapping Domestic
+# Mapping the Lower Layer Super Output Area (LSOA)
 
-#### Mapping Electricity consumption
+## Mapping Domestic
+
+### Mapping Electricity consumption
 ```{r Loading in the LSOA electricty consumption data}
 #Electricty consumption data LSOA pre downloaded
 inFile <-paste0(dataFolder, "energy/LSOA_ELEC_2019.csv")
@@ -230,7 +230,7 @@ ggplot2::ggplot(lsoa_merged_sf) +
 #Mapping it
 ```
 
-##### Looking at cities in more detail
+#### Looking at cities in more detail
 ```{r Looking at the cities in more detail}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Southampton")
@@ -242,7 +242,8 @@ ggplot2::ggplot(mapData) +
   labs(caption = "Southampton")
 ```
 
-#### Mapping Gas
+
+### Mapping Gas
 
 ```{r Loading in the LSOA gas consumption data}
 #Electricty consumption data LSOA pre downloaded
@@ -263,27 +264,8 @@ ggplot2::ggplot(lsoa_merged_sf_gas) +
 
 > Aha - this one shows where there is no gas :-)
 
-### Mapping Industrial
-#### Mapping Electricity consumption
 
-> didn't we already do this in the MSOA section?
-
-```{r Loading in the LSOA electricity consumption data for industry }
-# electricity consumption data for industry at LSOA level (pre downloaded)
-inFile <-paste0(dataFolder, "energy/MSOA_NONDOM_2019.csv")
-msoa_elecDatanondom <- readr::read_csv(inFile)
-head(msoa_elecDatanondom)
-```
-
-
-
-
-
-
-
-
-
-### Mapping the Indices of Multiple Deprivation
+## Mapping the Indices of Multiple Deprivation
 
 ```{r Loading in the Indices of Multiple Deprivation data}
 # Multiple deprivation data at MSOA pre downloaded
