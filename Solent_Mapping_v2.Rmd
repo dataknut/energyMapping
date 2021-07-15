@@ -23,7 +23,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE) # set this to FALSE if you don't want the code in the final oputput
+knitr::opts_chunk$set(echo = TRUE) # set this to FALSE if you don't want the code in the final output
 
 # useful R libraries
 library(ggplot2)
@@ -276,12 +276,12 @@ head(lsoa_multidep)
 ```
 
 ```{r Mapping the Indices of deprivation for the LSOA}
-lsoa_multidep$LSOA11CD <- lsoa_multidep$`LSOA code (2011)` #creating a variable with the LSOA code in the same name as in sf_data
+lsoa_multidep$LSOA11CD <- lsoa_multidep$lsoa11cd #creating a variable with the LSOA code in the same name as in sf_data
 head(lsoa_multidep)
 lsoa_multidep_merged_sf <- merge(lsoa_sf_data, lsoa_multidep) #merging these
 ggplot2::ggplot(lsoa_multidep_merged_sf) +
-  geom_sf(aes(fill=`Index of Multiple Deprivation (IMD) Rank`))+ # which data set has the scores?
-  scale_fill_continuous(name="IMD Rank", low="green",high="red")+
+  geom_sf(aes(fill=`IMDScore`))+ # which data set has the scores?
+  scale_fill_continuous(name="IMD Score", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)")
 ```
 
