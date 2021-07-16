@@ -108,6 +108,20 @@ ggplot2::ggplot(la_merged_Transp) +
   geom_sf(aes(fill = Personal)) +
   scale_fill_gradient(name = "Personal: Thousand tonnes of oil equivalent (ktoe)", low="green",high="red") 
 ```
+## Mapping Fuel Poverty 
+###2021 Proportion of Population
+```{r Loading in the 2021 Local Authority Fuel Poverty Data}
+inFile<-paste0(dataFolder, "Fuel Poverty/2021 LA_Fuel_Poverty.csv")
+la_fuelpov_2021<-readr::read_csv(inFile)
+head(la_fuelpov_2021)
+```
+```{r Mapping Local Authority Fuel Poverty 2021}
+la_fuelpov_2021$lad18cd <- la_Transport$"Area Codes" # Creating a variable with the local authority code in the same name 
+la_merged_Fuelpov2021 <- merge(la_sf_data, la_fuelpov_2021)# Merge the local Authority boundaries and the Fuel Poverty data
+ggplot2::ggplot(la_merged_Fuelpov2021) +
+  geom_sf(aes(fill = "Proportion of households fuel poor (%)")) +
+  scale_fill_gradient(name = "Proportion of households fuel poor (%)", low="green",high="red")
+```
 
 # Mapping the Middle Layer Super Output Areas (MSOA)
 
@@ -266,7 +280,7 @@ ggplot2::ggplot(lsoa_merged_sf_gas) +
 > Aha - this one shows where there is no gas :-)
 
 
-## Mapping the Indices of Multiple Deprivation
+### Mapping the Indices of Multiple Deprivation
 
 ```{r Loading in the Indices of Multiple Deprivation data}
 # Multiple deprivation data at MSOA pre downloaded
@@ -284,6 +298,23 @@ ggplot2::ggplot(lsoa_multidep_merged_sf) +
   scale_fill_continuous(name="IMD Score", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)")
 ```
+###Mapping Fuel Poverty
+####2021 Fuel Poverty
+```{r Loading in the LSOA 2021 Fuel Poverty data}
+inFile<-paste0(dataFolder, "Fuel Poverty/2021 LSOA_Fuel_Poverty.csv")
+lsoa_fuelpov_2021<-readr::read_csv (inFile)
+head(lsoa_fuelpov_2021)
+```
+```{r Mapping the LSOA 2021 Fuel Poverty}
+lsoa_fuelpov_2021$LSOA11CD <- lsoa_fuelpov_2021$"LSOA Code" #creating a variable with the LSOA code in the same name as in sf_data
+lsoa_fuelpov_2021_merged <- merge(lsoa_sf_data, lsoa_fuelpov_2021) #merging these
+ggplot2::ggplot(lsoa_fuelpov_2021_merged) +
+  geom_sf(aes(fill="Proportion of households fuel poor (%)"))+ # which data set has the scores?
+  scale_fill_continuous(name="Proportion of households fuel poor (%)", low="green",high="red")+
+  labs(caption ="Solent (all LSOAs)")
+```
+```
+
 
 # The end
 
