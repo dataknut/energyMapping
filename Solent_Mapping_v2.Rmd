@@ -109,17 +109,19 @@ ggplot2::ggplot(la_merged_Transp) +
   scale_fill_gradient(name = "Personal: Thousand tonnes of oil equivalent (ktoe)", low="green",high="red") 
 ```
 ## Mapping Fuel Poverty 
-###2021 Proportion of Population
+### 2021 Proportion of Population
+
 ```{r Loading in the 2021 Local Authority Fuel Poverty Data}
 inFile<-paste0(dataFolder, "Fuel Poverty/2021 LA_Fuel_Poverty.csv")
 la_fuelpov_2021<-readr::read_csv(inFile)
 head(la_fuelpov_2021)
 ```
 ```{r Mapping Local Authority Fuel Poverty 2021}
-la_fuelpov_2021$lad18cd <- la_Transport$"Area Codes" # Creating a variable with the local authority code in the same name 
+la_fuelpov_2021$lad18cd <- la_fuelpov_2021$`Area Codes` # Creating a variable with the local authority code in the same name 
 la_merged_Fuelpov2021 <- merge(la_sf_data, la_fuelpov_2021)# Merge the local Authority boundaries and the Fuel Poverty data
+la_merged_Fuelpov2021$pcFP <- as.numeric(la_merged_Fuelpov2021$`Proportion of households fuel poor (%)`) # convert to numeric from char - why does it load as char??
 ggplot2::ggplot(la_merged_Fuelpov2021) +
-  geom_sf(aes(fill = "Proportion of households fuel poor (%)")) +
+  geom_sf(aes(fill = pcFP)) +
   scale_fill_gradient(name = "Proportion of households fuel poor (%)", low="green",high="red")
 ```
 
@@ -298,23 +300,25 @@ ggplot2::ggplot(lsoa_multidep_merged_sf) +
   scale_fill_continuous(name="IMD Score", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)")
 ```
-###Mapping Fuel Poverty
-####2021 Fuel Poverty
+
+### Mapping Fuel Poverty
+#### 2021 Fuel Poverty
 ```{r Loading in the LSOA 2021 Fuel Poverty data}
 inFile<-paste0(dataFolder, "Fuel Poverty/2021 LSOA_Fuel_Poverty.csv")
 lsoa_fuelpov_2021<-readr::read_csv (inFile)
 head(lsoa_fuelpov_2021)
 ```
+
 ```{r Mapping the LSOA 2021 Fuel Poverty}
 lsoa_fuelpov_2021$LSOA11CD <- lsoa_fuelpov_2021$"LSOA Code" #creating a variable with the LSOA code in the same name as in sf_data
 lsoa_fuelpov_2021_merged <- merge(lsoa_sf_data, lsoa_fuelpov_2021) #merging these
+# as above - why does it load as a char?
+lsoa_fuelpov_2021_merged$pcFP <- as.numeric(lsoa_fuelpov_2021_merged$`Proportion of households fuel poor (%)`)
 ggplot2::ggplot(lsoa_fuelpov_2021_merged) +
-  geom_sf(aes(fill="Proportion of households fuel poor (%)"))+ # which data set has the scores?
+  geom_sf(aes(fill=pcFP))+ 
   scale_fill_continuous(name="Proportion of households fuel poor (%)", low="green",high="red")+
   labs(caption ="Solent (all LSOAs)")
 ```
-```
-
 
 # The end
 
