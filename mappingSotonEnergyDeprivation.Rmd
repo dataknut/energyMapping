@@ -1,0 +1,295 @@
+---
+title: "Southampton: Mapping Energy Poverty & Deprivation"
+author: "Ben Anderson"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2: 
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    fig_width: 5
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE) # set this to FALSE if you don't want the code in the final output
+
+# useful R libraries
+library(ggplot2)
+library(readr)
+library(dplyr)
+
+# GIS libraries
+library(raster)
+library(sf)
+library(spData)
+library(spDataLarge)
+
+dataFolder<-"/Users/megha/Desktop/1. Uni/Masters/Project/Mapping Code/data/" # default for Meghan
+user <- Sys.info()[[7]] # who are we logged in as?
+if(user == "ben"){
+  dataFolder <- path.expand("~/University of Southampton/HCC Energy Landscape Mapping project - Documents/General/data/")
+}
+
+# this will not print anything out when knitted due to the include=FALSE setting in the chunk header
+message("User: ", user)
+message("dataFolder: ", dataFolder)
+```
+
+# Intro
+
+Mapping fuel poverty, deprivation & doemstic energy use in Southampton to focus on areas which are high fp & high deprivation.
+
+Based on:
+
+ * [Meghan Kinglsey-Walsh's MSc](https://github.com/dataknut/energyMapping) project code
+ * Tom Rushby's [open geography](https://dataknut.github.io/mapping-with-r/ONS-open-geography.html) example.
+
+# Mapping Domestic Electricity consumption (LSOAs)
+
+```{r Loading in the LSOA electricty consumption data}
+#Electricty consumption data LSOA pre downloaded
+inFile <-paste0(dataFolder, "energy/LSOA_ELEC_2019.csv")
+library(data.table)
+lsoa_elecData_dt <- data.table::as.data.table(readr::read_csv(inFile))
+lsoa_elecData_dt$LSOA11CD <- lsoa_elecData_dt$`Lower Layer Super Output Area (LSOA) Code`
+
+selectSoton <- function(dt){
+  # function we can re-use
+  # assumes a data.table
+  # assumes LA name = la_name (may need to make new var first)
+  select_dt <- dt[la_name %like% "Southampton"]
+  return(select_dt)
+}
+
+lsoa_elecData_dt$la_name <- lsoa_elecData_dt$`Local Authority Name`
+# filter Soton
+lsoa_soton_elecData_dt <- selectSoton(lsoa_elecData_dt)
+
+```
+
+```{r Loading in boundary data for the LSOA}
+#The LSOA boundaries for the Solent have been pre-downloaded
+inf<-paste0(dataFolder, "boundaries/LSOA/lsoa_solent.shp")
+message ("Loading LSOA boundaries from file")
+lsoa_sf_data <- sf::read_sf(inf)
+table(lsoa_sf_data$LAD11NM)#How many LSOAs are there in each LA
+```
+
+Focus on Southampton
+
+```{r Mapping the electricty consumption of the LSOAs}
+lsoa_merged_sf <- merge(lsoa_sf_data, lsoa_soton_elecData_dt) #merging the boundaries and energy data
+ggplot2::ggplot(lsoa_merged_sf) + 
+  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
+  scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Solent (all LSOAs)")
+#Mapping it
+```
+
+# Mapping Domestic Gas (LSOAs)
+
+```{r Loading in the LSOA gas consumption data}
+#Electricty consumption data LSOA pre downloaded
+inFile <-paste0(dataFolder, "energy/LSOA_GAS_2019.csv")
+lsoa_gasData_dt <- as.data.table(readr::read_csv(inFile))
+lsoa_gasData_dt$LSOA11CD <- lsoa_gasData_dt$`Lower Layer Super Output Area (LSOA) Code`
+lsoa_gasData_dt$la_name <- lsoa_gasData_dt$`Local Authority Name`
+# filter Soton
+lsoa_soton_gas_dt <- selectSoton(lsoa_gasData_dt)
+```
+
+```{r Mapping the gas consumption of the LSOAs}
+lsoa_merged_sf_gas <- merge(lsoa_sf_data, lsoa_soton_gas_dt) #merging the boundaries and energy data
+ggplot2::ggplot(lsoa_merged_sf_gas) + 
+  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Southampton (all LSOAs)")
+#Mapping it
+```
+
+> Some areas are very high gas...
+
+### Correlating gas & elecricity
+
+```{r gaselecCorr}
+setkey(lsoa_soton_elecData_dt, LSOA11CD)
+lsoa_soton_elecData_dt[, meanEleckWh := `Mean domestic electricity consumption \n(kWh per meter)`]
+setkey(lsoa_soton_gas_dt, LSOA11CD)
+lsoa_soton_gas_dt[, meanGaskWh := `Mean consumption (kWh per meter)`]
+dt <- lsoa_soton_elecData_dt[lsoa_soton_gas_dt]
+ggplot2::ggplot(dt, aes(x = meanEleckWh, y = meanGaskWh)) +
+  geom_point()
+```
+
+
+# Mapping the Indices of Multiple Deprivation (LSOAs)
+
+2019 data
+
+Should be a negative correlation with gas & electricity
+
+```{r Loading in the Indices of Multiple Deprivation data}
+# Multiple deprivation data at MSOA pre downloaded
+inFile <-paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv")
+lsoa_multidep_dt <- as.data.table(readr::read_csv (inFile))
+lsoa_multidep_dt[, la_name := LADnm]
+lsoa_multidepSoton_dt <- selectSoton(lsoa_multidep_dt)
+```
+
+```{r Mapping the Indices of deprivation for the LSOA}
+lsoa_multidepSoton_dt$LSOA11CD <- lsoa_multidepSoton_dt$lsoa11cd #creating a variable with the LSOA code in the same name as in sf_data
+
+lsoa_multidep_merged_sf <- merge(lsoa_sf_data, lsoa_multidepSoton_dt) #merging these
+ggplot2::ggplot(lsoa_multidep_merged_sf) +
+  geom_sf(aes(fill=`IMDScore`))+ # which data set has the scores?
+  scale_fill_continuous(name="IMD Score", low="green",high="red")+
+  labs(caption ="Southampton (all LSOAs)")
+```
+
+Check correlations with energy
+
+```{r energyCorrIMD}
+setkey(lsoa_multidepSoton_dt, LSOA11CD)
+dt <- lsoa_soton_elecData_dt[lsoa_soton_gas_dt][lsoa_multidepSoton_dt]
+
+plotDT <- dt[, .(meanEleckWh, meanGaskWh, IMDScore)]
+pairs(plotDT)
+```
+
+> Much stronger relationship between mean gas use & IMD score in Southampton
+
+# Mapping Fuel Poverty (LSOAs)
+
+2019 Fuel Poverty
+```{r Loading in the LSOA 2021 Fuel Poverty data}
+inFile<-paste0(dataFolder, "Fuel Poverty/2019 LSOA_Fuel_Poverty.csv")
+lsoa_fuelpov_2019_dt <- as.data.table(readr::read_csv (inFile))
+lsoa_fuelpov_2019_dt[, la_name := `LA Name`]
+lsoa_fuelpovSoton_2019_dt <- selectSoton(lsoa_fuelpov_2019_dt)
+```
+
+```{r Mapping the LSOA 2021 Fuel Poverty}
+lsoa_fuelpovSoton_2019_dt[, pcFP := as.numeric(`Proportion of households fuel poor (%)`)]
+lsoa_fuelpovSoton_2019_dt[, LSOA11CD := `LSOA Code`] #creating a variable with the LSOA code in the same name as in sf_data
+lsoa_fuelpov_2021_merged <- merge(lsoa_sf_data, lsoa_fuelpovSoton_2019_dt) #merging these
+# as above - why does it load as a char?
+
+ggplot2::ggplot(lsoa_fuelpov_2021_merged) +
+  geom_sf(aes(fill=pcFP))+ 
+  scale_fill_continuous(name="Proportion of households fuel poor (%)", low="green",high="red")+
+  labs(caption ="Southampton (all LSOAs)")
+```
+
+# Correlating energy use & fuel poverty/deprivation
+
+Figure \@ref(fig:energyCorrAll) shows correlation of fuel poverty & IMD & energy
+
+```{r energyCorrAll, fig.cap="Correlation of IMD score, % in fuel poverty and mean energy demand (Southampton LSOAs)"}
+setkey(lsoa_fuelpovSoton_2019_dt, LSOA11CD)
+dt <- lsoa_soton_elecData_dt[lsoa_soton_gas_dt][lsoa_multidepSoton_dt][lsoa_fuelpovSoton_2019_dt]
+
+plotDT <- dt[, .(`MSOA Name`, LSOA11CD, 
+                 meanEleckWh, meanGaskWh, IMDScore, IMDRank0, IMDDec0, IncScore, pcFP)]
+pairs(plotDT[, .(meanEleckWh, meanGaskWh, IMDScore, IncScore, pcFP)])
+```
+
+IMD & % in fuel poverty correlate. Less clear correlation with mean energy. Need to check definitions... Also we might expect more of a correlation with the Income score (although INC score seems to drive IMD score in Southampton so...)
+
+# Selecting areas with high fuel poverty & high deprivation
+
+Create a local quantile for each - where are the places with higest deprivation & fuel poverty?
+
+```{r checkAreas}
+# reuse plotDT from above
+# create local IMD & fuel poverty quintiles (5) 0->20% etc
+plotDT[, IMD_quinSoton := cut(IMDScore, quantile(IMDScore))]
+plotDT[, pcFP_quinSoton := cut(pcFP, quantile(pcFP))]
+
+# how many LSOAs are in each cell of the crosstab
+t <- plotDT[, .(n = .N), keyby = .(IMD_quinSoton, pcFP_quinSoton)]
+
+t
+```
+
+Strange - why are there NAs?
+
+Select them...
+
+```{r selectAreas}
+
+sample <- plotDT[pcFP_quinSoton  == "(12,25]" & 
+              IMD_quinSoton == "(36.1,67.2]"][order(-pcFP)]
+sample[, .(LSOA11CD, IMDScore, IMDDec0, IMD_quinSoton, pcFP, pcFP_quinSoton)]
+message("Which national IMD decile are they in & what is mean % FP?")
+sample[, .(mean_pcFP = mean(pcFP),
+           mean_IMDScore = mean(IMDScore),
+           nLSOAs = .N), keyby = .(IMDDec0)]
+```
+ 
+ Map them
+ 
+```{r map areas}
+map_df <- merge(lsoa_sf_data, sample) #merging the boundaries and energy data
+ggplot2::ggplot(map_df) + 
+  geom_sf(aes(fill = pcFP)) +
+  scale_fill_continuous(name = "% fuel poverty", low = "green", high = "red") +
+  labs(caption = "Southampton (selected LSOAs)")
+
+
+ggplot2::ggplot(map_df) + 
+  geom_sf(aes(fill = IMDScore)) +
+  scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
+  labs(caption = "Southampton (selected LSOAs)")
+
+library(plotly)
+p <- ggplot2::ggplot(sample, aes(x = IMDScore, y = pcFP)) +
+  geom_point(aes(label = LSOA11CD))
+
+plotly::ggplotly(p)
+```
+
+> Note that some areas are high IMD but relatively low % fuel poverty
+
+Figure \@ref(fig:mapLeaflet) shows a leaflet version for pretty background to identify locations
+
+```{r mapLeaflet, fig.cap="Location of filtered LSOAs"}
+# https://dataknut.github.io/mapping-with-r/ONS-open-geography.html
+library(leaflet)
+
+st_coord_sys <- st_crs(map_df) # check coord system
+st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
+
+# transform the coord system if required
+if(st_coord_sys$epsg != 4326){
+  map_df_trans <- st_transform(map_df, "+proj=longlat +datum=WGS84")
+}
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(color = "blue", fillColor = "blue", fillOpacity = 0.2, weight = 1.5, popup = ~(LSOA11CD), # popups clicked
+              highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+```
+
+# The end
+
+```{r environment}
+R.Version()
+
+```
