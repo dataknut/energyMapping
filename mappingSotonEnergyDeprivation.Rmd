@@ -262,9 +262,9 @@ plotly::ggplotly(p)
 
 > Note that some areas are high IMD but relatively low % fuel poverty
 
-Figure \@ref(fig:mapLeaflet) shows a leaflet version for pretty background to identify locations
+Figure \@ref(fig:mapLeaflet) shows a leaflet version for pretty background to identify locations. When selected the LSOAs are coloured by their IMD Score.
 
-```{r mapLeaflet, fig.cap="Location of filtered LSOAs"}
+```{r mapLeaflet, fig.cap="Location of filtered LSOAs (coloured by IMD score)"}
 # https://dataknut.github.io/mapping-with-r/ONS-open-geography.html
 library(leaflet)
 
@@ -276,9 +276,14 @@ if(st_coord_sys$epsg != 4326){
   map_df_trans <- st_transform(map_df, "+proj=longlat +datum=WGS84")
 }
 
+#h/t @tom_rushby - see also https://rstudio.github.io/leaflet/colors.html
+
+qpal <- colorNumeric("Reds", map_df_trans$IMDScore, n = 9)
+
 leaflet(map_df_trans) %>%
   addTiles() %>%  # Add default OpenStreetMap map tiles
-  addPolygons(color = "blue", fillColor = "blue", fillOpacity = 0.2, weight = 1.5, popup = ~(LSOA11CD), # popups clicked
+  addPolygons(color = ~qpal(IMDScore),
+              fillOpacity = 0.2, weight = 1.5, popup = ~(LSOA11CD), # popups clicked
               highlight = highlightOptions(
                 weight = 5,
                 color = "#666",
