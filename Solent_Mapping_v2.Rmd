@@ -316,17 +316,17 @@ ggplot2::ggplot(lsoa_multidep_merged_sf) +
 ### Mapping Fuel Poverty
 #### 2019 Fuel Poverty
 ```{r Loading in the LSOA 2021 Fuel Poverty data}
-inFile<-paste0(dataFolder, "Fuel Poverty/2021 LSOA_Fuel_Poverty.csv")
-lsoa_fuelpov_2021<-readr::read_csv (inFile)
-head(lsoa_fuelpov_2021)
+inFile<-paste0(dataFolder, "Fuel Poverty/2019 LSOA_Fuel_Poverty.csv")
+lsoa_fuelpov_2019<-readr::read_csv (inFile)
+head(lsoa_fuelpov_2019)
 ```
 
 ```{r Mapping the LSOA 2021 Fuel Poverty}
-lsoa_fuelpov_2021$LSOA11CD <- lsoa_fuelpov_2021$"LSOA Code" #creating a variable with the LSOA code in the same name as in sf_data
-lsoa_fuelpov_2021_merged <- merge(lsoa_sf_data, lsoa_fuelpov_2021) #merging these
+lsoa_fuelpov_2019$LSOA11CD <- lsoa_fuelpov_2019$"LSOA Code" #creating a variable with the LSOA code in the same name as in sf_data
+lsoa_fuelpov_2019_merged <- merge(lsoa_sf_data, lsoa_fuelpov_2019) #merging these
 # as above - why does it load as a char?
-lsoa_fuelpov_2021_merged$pcFP <- as.numeric(lsoa_fuelpov_2021_merged$`Proportion of households fuel poor (%)`)
-ggplot2::ggplot(lsoa_fuelpov_2021_merged) +
+lsoa_fuelpov_2019_merged$pcFP <- as.numeric(lsoa_fuelpov_2019_merged$`Proportion of households fuel poor (%)`)
+ggplot2::ggplot(lsoa_fuelpov_2019_merged) +
   geom_sf(aes(fill=pcFP))+ 
   scale_fill_continuous(name="Proportion of households fuel poor (%)", low="green",high="red")+
   labs(caption ="Solent (all LSOAs)")
