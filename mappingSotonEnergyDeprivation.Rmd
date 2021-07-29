@@ -173,6 +173,7 @@ pairs(plotDT)
 # Mapping Fuel Poverty (LSOAs)
 
 2019 Fuel Poverty
+
 ```{r Loading in the LSOA 2021 Fuel Poverty data}
 inFile<-paste0(dataFolder, "Fuel Poverty/2019 LSOA_Fuel_Poverty.csv")
 lsoa_fuelpov_2019_dt <- as.data.table(readr::read_csv (inFile))
