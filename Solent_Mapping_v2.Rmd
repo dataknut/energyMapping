@@ -234,7 +234,6 @@ ggplot2::ggplot(msoa_merged_sf_nondom) +
 
 
 ### Mapping Gas
-
 ```{r Loading in the MSOA gas consumption data for industry }
 # gas consumption data for industry at MSOA level (pre downloaded)
 inFile <-paste0(dataFolder, "energy/MSOA_NonDom_Gas_2019.csv")
@@ -252,6 +251,17 @@ ggplot2::ggplot(msoa_merged_sf_nondom_gas) +
 #mapping it
 ```
 > The holes tell you where there is no non-domestic gas use
+
+####Mapping the difference in non domestic gas from 2010 to 2019 
+
+
+
+
+
+
+
+
+
 
 
 # Mapping the Lower Layer Super Output Area (LSOA)
