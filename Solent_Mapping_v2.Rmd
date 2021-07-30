@@ -254,6 +254,8 @@ ggplot2::ggplot(msoa_merged_sf_nondom_gas) +
 
 ####Mapping the difference in non domestic gas from 2010 to 2019 
 
+here here here
+
 
 
 
