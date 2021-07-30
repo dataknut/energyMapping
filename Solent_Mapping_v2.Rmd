@@ -123,22 +123,27 @@ ggplot2::ggplot(la_merged_Fuelpov2019) +
   geom_sf(aes(fill = pcFP)) +
   scale_fill_gradient(name = "Proportion of households fuel poor (%)", low="green",high="red")
 ```
-### Difference in proportion Fuel Poverty 2012 to 2019
-```{r Creating the idfference in proportion variable}
-#Green indicates a smaller increase in fuel poverty from 2012 to 2019
-#Red indicates an increase in fuel poverty from 2012 to 2019
+### Difference in proportion Fuel Poverty 2012 to 2018 (BROKEN)
+```{r Creating the difference in proportion variable}
+#Green indicates a smaller increase in fuel poverty from 2012 to 2018
+#Red indicates an increase in fuel poverty from 2012 to 2018
+#2018 has to be used as the metric for measuring fuel poverty changed in 2019
 fp_LA_2012_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2012 LA_Fuel_Poverty.csv"))
-fp_LA_2019_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2019 LA_Fuel_Poverty.csv"))
-merged_df <- merge(fp_LA_2012_df, fp_LA_2019_df, by = "Area Code", all = TRUE)
-names(merged_df)
-merged_df$pc_diff <-  as.numeric(merged_df$`Proportion of households fuel poor (%)`) - merged_df$`Proportion of households fuel poor (%) 2012`
+fp_LA_2018_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2018 LA_Fuel_Poverty.csv"))
+fp_LA_2012_df$pc2012la <- fp_LA_2012_df$`Proportion of households fuel poor (%) 2012`
+fp_LA_2018_df$pc2018la <- fp_LA_2018_df$`Proportion of households fuel poor (%)`
+
+
+merged_dfla <- merge(fp_LA_2012_df, fp_LA_2018_df, by = "LA Code", all = TRUE)
+names(merged_dfla)
+merged_dfla$pc_diff <-merged_dfla$pc2018la - merged_df$pc2012la
 ```
-```{r Mapping the iddference in fuel poverty from 2012 to 2019}
-merged_df$lad18cd <- la_fuelpov_2019$`Area Code` # Creating a variable with the local authority code in the same name 
-la_merged_Fuelpov20192012dif <- merge(la_sf_data,merged_df)# Merge the local Authority boundaries and the Fuel Poverty data
-la_merged_Fuelpov20192012dif$pcFP <- as.numeric(la_merged_Fuelpov20192012dif$`Proportion of households fuel poor (%)`) # convert to numeric from char - why does it load as char??
-ggplot2::ggplot(la_merged_Fuelpov20192012dif) +
-  geom_sf(aes(fill = pc_diff)) +
+```{r Mapping the difference in fuel poverty from 2012 to 2018}
+merged_dfla$lad18cd <- merged_dfla$`LA Code` # Creating a variable with the local authority code in the same name 
+la_merged_Fuelpov20182012dif <- merge(la_sf_data,merged_dfla)# Merge the local Authority boundaries and the Fuel Poverty data
+la_merged_Fuelpov20182012dif$pcFP <- as.numeric(la_merged_Fuelpov20182012dif$`Proportion of households fuel poor (%)`) # convert to numeric from char - why does it load as char??
+ggplot2::ggplot(la_merged_Fuelpov20182012dif) +
+  geom_sf(aes(fill = pc_diffla)) +
   scale_fill_gradient(name = " Difference in proportion of households fuel poor (%)", low="green",high="red")
 ```
 # Mapping the Middle Layer Super Output Areas (MSOA)
