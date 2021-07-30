@@ -80,7 +80,6 @@ ggplot2::ggplot(la_merged_sf) +
 ```
 
 ## Mapping Transport
-
 #### Freight
 ```{r Loading the  Freight Transport consumption data for the Local Autority}
 inFile <-paste0(dataFolder, "energy/Local Authority level Transport data.csv")
@@ -117,14 +116,13 @@ la_fuelpov_2019<-readr::read_csv(inFile)
 head(la_fuelpov_2019)
 ```
 ```{r Mapping Local Authority Fuel Poverty 2019}
-la_fuelpov_2019$lad18cd <- la_fuelpov_2019$`Area Codes` # Creating a variable with the local authority code in the same name 
+la_fuelpov_2019$lad18cd <- la_fuelpov_2019$`Area Code` # Creating a variable with the local authority code in the same name 
 la_merged_Fuelpov2019 <- merge(la_sf_data, la_fuelpov_2019)# Merge the local Authority boundaries and the Fuel Poverty data
 la_merged_Fuelpov2019$pcFP <- as.numeric(la_merged_Fuelpov2019$`Proportion of households fuel poor (%)`) # convert to numeric from char - why does it load as char??
 ggplot2::ggplot(la_merged_Fuelpov2019) +
   geom_sf(aes(fill = pcFP)) +
   scale_fill_gradient(name = "Proportion of households fuel poor (%)", low="green",high="red")
 ```
- 
 ### Difference in proportion Fuel Poverty 2012 to 2019
 ```{r Creating the idfference in proportion variable}
 #Green indicates a smaller increase in fuel poverty from 2012 to 2019
@@ -143,18 +141,8 @@ ggplot2::ggplot(la_merged_Fuelpov20192012dif) +
   geom_sf(aes(fill = pc_diff)) +
   scale_fill_gradient(name = " Difference in proportion of households fuel poor (%)", low="green",high="red")
 ```
-
-
-###Difference in proportion between 2012-2019
-
-
-
-
-
 # Mapping the Middle Layer Super Output Areas (MSOA)
-
 ## Mapping Domestic
-
 ### Mapping the Electricity Consumption
 
 ```{r Loading in the MSOA electricity consumption data}
@@ -182,7 +170,6 @@ ggplot2::ggplot(msoa_merged_sf) +
   labs(caption = "Solent (all MSOAs)")
 #mapping it
 ```
-
 ### Mapping the Gas
 ```{r Loading in the MSOA gas consumption data}
 # gas consumption data at MSOA level (pre downloaded)
@@ -201,6 +188,29 @@ ggplot2::ggplot(msoa_merged_sf_domgas) +
 ```
 > Does this match to non-gas areas??
 
+####Mapping the change in gas consumption from 2010 to 2019
+```{r Creating the dfference in consumption variable}
+#Green indicates a decrease in gas consumption from 2010 to 2019
+#Red indicates an increase in gas consumption from 2010 to 2019
+domgas_MSOA_2010 <- readr::read_csv(paste0(dataFolder, "/energy/MSOA_GAS_2010.csv"))
+domgas_MSOA_2019 <- readr::read_csv(paste0(dataFolder, "/energy/MSOA_GAS_2019.csv"))
+domgas_MSOA_2010$domgas2010 <- domgas_MSOA_2010$`Mean consumption (kWh per meter)`
+domgas_MSOA_2019$domgas2019 <- domgas_MSOA_2019$`Mean consumption (kWh per meter)`
+merged_domgas <- merge(domgas_MSOA_2010, domgas_MSOA_2019, by = "Middle Layer Super Output Area (MSOA) Code", all = TRUE)
+names(merged_domgas)
+merged_domgas$mc_diff <-  as.numeric(merged_domgas$domgas2019) - merged_domgas$domgas2010
+summary(merged_domgas)
+```
+
+```{r Mapping the change in dom mean gas comsumption}
+merged_domgas$MSOA11CD <- merged_domgas$"MSOA Code" #creating a variable with the LSOA code in the same name as in sf_data
+msoa_domgas20102019 <- merge(msoa_sf_data, merged_domgas) #merging these
+ggplot2::ggplot(msoa_domgas20102019) +
+  geom_sf(aes(fill=mc_diff))+ 
+  scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
+  labs(caption ="Solent (all MSOAs)")
+##Error saying "Could not reallocate memory"
+```
 
 ## Mapping Commercial
 ### Mapping Electricty
@@ -220,6 +230,9 @@ ggplot2::ggplot(msoa_merged_sf_nondom) +
   labs(caption = "Solent (all MSOAs)")
 #mapping it
 ```
+####
+
+
 ### Mapping Gas
 
 ```{r Loading in the MSOA gas consumption data for industry }
