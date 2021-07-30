@@ -116,7 +116,7 @@ inFile<-paste0(dataFolder, "Fuel Poverty/2019 LA_Fuel_Poverty.csv")
 la_fuelpov_2019<-readr::read_csv(inFile)
 head(la_fuelpov_2019)
 ```
-```{r Mapping Local Authority Fuel Poverty 2021}
+```{r Mapping Local Authority Fuel Poverty 2019}
 la_fuelpov_2019$lad18cd <- la_fuelpov_2019$`Area Codes` # Creating a variable with the local authority code in the same name 
 la_merged_Fuelpov2019 <- merge(la_sf_data, la_fuelpov_2019)# Merge the local Authority boundaries and the Fuel Poverty data
 la_merged_Fuelpov2019$pcFP <- as.numeric(la_merged_Fuelpov2019$`Proportion of households fuel poor (%)`) # convert to numeric from char - why does it load as char??
@@ -125,11 +125,25 @@ ggplot2::ggplot(la_merged_Fuelpov2019) +
   scale_fill_gradient(name = "Proportion of households fuel poor (%)", low="green",high="red")
 ```
  
-### Actual Difference between 2012-2019
-```{r Loading in the difference data}
+### Difference in proportion Fuel Poverty 2012 to 2019
+```{r Creating the idfference in proportion variable}
 #Green indicates a smaller increase in fuel poverty from 2012 to 2019
 #Red indicates an increase in fuel poverty from 2012 to 2019
+fp_LA_2012_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2012 LA_Fuel_Poverty.csv"))
+fp_LA_2019_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2019 LA_Fuel_Poverty.csv"))
+merged_df <- merge(fp_LA_2012_df, fp_LA_2019_df, by = "Area Code", all = TRUE)
+names(merged_df)
+merged_df$pc_diff <-  as.numeric(merged_df$`Proportion of households fuel poor (%)`) - merged_df$`Proportion of households fuel poor (%) 2012`
 ```
+```{r Mapping the iddference in fuel poverty from 2012 to 2019}
+merged_df$lad18cd <- la_fuelpov_2019$`Area Code` # Creating a variable with the local authority code in the same name 
+la_merged_Fuelpov20192012dif <- merge(la_sf_data,merged_df)# Merge the local Authority boundaries and the Fuel Poverty data
+la_merged_Fuelpov20192012dif$pcFP <- as.numeric(la_merged_Fuelpov20192012dif$`Proportion of households fuel poor (%)`) # convert to numeric from char - why does it load as char??
+ggplot2::ggplot(la_merged_Fuelpov20192012dif) +
+  geom_sf(aes(fill = pc_diff)) +
+  scale_fill_gradient(name = " Difference in proportion of households fuel poor (%)", low="green",high="red")
+```
+
 
 ###Difference in proportion between 2012-2019
 
@@ -321,7 +335,7 @@ lsoa_fuelpov_2019<-readr::read_csv (inFile)
 head(lsoa_fuelpov_2019)
 ```
 
-```{r Mapping the LSOA 2021 Fuel Poverty}
+```{r Mapping the LSOA 2019 Fuel Poverty}
 lsoa_fuelpov_2019$LSOA11CD <- lsoa_fuelpov_2019$"LSOA Code" #creating a variable with the LSOA code in the same name as in sf_data
 lsoa_fuelpov_2019_merged <- merge(lsoa_sf_data, lsoa_fuelpov_2019) #merging these
 # as above - why does it load as a char?
@@ -331,10 +345,59 @@ ggplot2::ggplot(lsoa_fuelpov_2019_merged) +
   scale_fill_continuous(name="Proportion of households fuel poor (%)", low="green",high="red")+
   labs(caption ="Solent (all LSOAs)")
 ```
+####Mapping the difference in proportion of fuel poverty from 2012 to 2018
 
-# The end
+```{r Creating the dfference in proportion variable}
+#Green indicates a smaller increase in fuel poverty from 2012 to 2018
+#Had to use 2018 as the metric for fuel poverty has changed in 2019 
+#Red indicates an increase in fuel poverty from 2012 to 2018
+fp_LSOA_2012_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2012 LSOA_Fuel_Poverty.csv"))
+fp_LSOA_2018_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2018 LSOA_Fuel_Poverty.csv"))
+fp_LSOA_2012_df$pc2012 <- fp_LSOA_2012_df$`Proportion of households fuel poor (%)`
+fp_LSOA_2018_df$pc2018 <- fp_LSOA_2018_df$`Proportion of households fuel poor (%)`
+merged_df <- merge(fp_LSOA_2012_df, fp_LSOA_2018_df, by = "LSOA Code", all = TRUE)
+names(merged_df)
+merged_df$pc_diff <-  as.numeric(merged_df$pc2018) - merged_df$pc2012
+summary(merged_df)
+```
+```{r Mapping the change in Fuel Poverty}
+merged_df$LSOA11CD <- merged_df$"LSOA Code" #creating a variable with the LSOA code in the same name as in sf_data
+lsoa_fuelpov20122018 <- merge(lsoa_sf_data, merged_df) #merging these
+ggplot2::ggplot(lsoa_fuelpov20122018) +
+  geom_sf(aes(fill=pc_diff))+ 
+  scale_fill_continuous(name="Change in Proportions of households fuel poor (%)", low="green",high="red")+
+  labs(caption ="Solent (all LSOAs)")
+```
+##### Looking at cities in more detail
+```{r Looking at Southampton in more detail}
+#Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_fuelpov20122018, LAD11NM == "Southampton")
 
-```{r environment}
-R.Version()
+# plotting the change in fuel poverty from 2018-2012 of Southampton in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = pc_diff)) +
+  scale_fill_continuous(name = "Change in Proportions of households fuel poor (%)", low = "green", high = "red") +
+  labs(caption = "Southampton")
+#Around Bargate and Freemantle increased fuel poverty
+```
+```{r Looking at Portsmouth in more detail}
+#Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_fuelpov20122018, LAD11NM == "Portsmouth")
 
+# plotting the change in fuel poverty from 2018-2012 of Portsmouth in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = pc_diff)) +
+  scale_fill_continuous(name = "Change in Proportions of households fuel poor (%)", low = "green", high = "red") +
+  labs(caption = "Portsmouth")
+#Charles Dickens increased fuel poverty
+```
+```{r Looking at Winchester in more detail}
+#Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_fuelpov20122018, LAD11NM == "Winchester")
+
+# plotting the change in fuel poverty from 2018-2012 of Winchester in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = pc_diff)) +
+  scale_fill_continuous(name = "Change in Proportions of households fuel poor (%)", low = "green", high = "red") +
+  labs(caption = "Winchester")
 ```
