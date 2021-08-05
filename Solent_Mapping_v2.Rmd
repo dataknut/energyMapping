@@ -156,7 +156,11 @@ summary(merged_dfla)
 
 ```{r Mapping the difference in fuel poverty from 2012 to 2018}
 ##BROKEN
+<<<<<<< HEAD
 merged_dfla$lad18nm <- merged_dfla$`LA Code` # Creating a variable with the local authority code in the same name 
+=======
+merged_dfla$LA11CD <- merged_dfla$`LA Code` # Creating a variable with the local authority code in the same name 
+>>>>>>> 4eb5c508a5293a58ae468b5993b2b9cabefef91b
 la_Fuelpov20182012dif <- merge(la_sf_data, merged_dfla) # Merge the local Authority boundaries and the Fuel Poverty data
 ggplot2::ggplot(la_Fuelpov20182012dif) +
   geom_sf(aes(fill = pc_diff)) +
