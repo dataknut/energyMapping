@@ -156,10 +156,10 @@ summary(merged_dfla)
 
 ```{r Mapping the difference in fuel poverty from 2012 to 2018}
 ##BROKEN
-merged_dfla$LA11CD <- merged_dfla$`LA Code` # Creating a variable with the local authority code in the same name 
-la_Fuelpov20182012dif <- merge(la_sf_data, merged_dfla)# Merge the local Authority boundaries and the Fuel Poverty data
-ggplot2::ggplot(la_merged_Fuelpov20182012dif) +
-  geom_sf(aes(fill = pc_diffla)) +
+merged_dfla$lad18nm <- merged_dfla$`LA Code` # Creating a variable with the local authority code in the same name 
+la_Fuelpov20182012dif <- merge(la_sf_data, merged_dfla) # Merge the local Authority boundaries and the Fuel Poverty data
+ggplot2::ggplot(la_Fuelpov20182012dif) +
+  geom_sf(aes(fill = pc_diff)) +
   scale_fill_gradient(name = " Difference in proportion of households fuel poor (%)", low="green", high="red") +
 labs(caption="Solent (all LA)")
 ```
@@ -342,7 +342,7 @@ ggplot2::ggplot(lsoa_merged_sf) +
 ```
 
 ##### Looking at cities in more detail
-```{r Southampton}
+```{r Southampton LSOA Elec}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Southampton")
 
@@ -352,7 +352,7 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Southampton")
 ```
-```{r Portsmouth}
+```{r Portsmouth LSOA Elec}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Portsmouth")
 
@@ -362,7 +362,7 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 ```
-```{r Winchester}
+```{r Winchester LSOA Elec}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Winchester")
 
@@ -404,7 +404,7 @@ ggplot2::ggplot(lsoa_merged_sf_gas) +
 > Aha - this one shows where there is no gas :-)
 
 #####Cities in More detail
-```{r Southampton}
+```{r Southampton LSOA Gas}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Southampton")
 
@@ -414,7 +414,7 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Southampton")
 ```
-```{r Portsmouth}
+```{r Portsmouth LSOA Gas}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Portsmouth")
 
@@ -424,7 +424,7 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 ```
-```{r Winchester}
+```{r Winchester LSOA Gas}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Winchester")
 
@@ -453,7 +453,7 @@ ggplot2::ggplot(lsoa_multidep_merged_sf) +
   labs(caption ="Solent (all LSOAs)")
 ```
 #####Looking at the cities in more detail
-```{r Looking at Southampton in more detail}
+```{r Southampton LSOA Indices of dep}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_multidep_merged_sf, LAD11NM == "Southampton")
 
@@ -463,21 +463,21 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
   labs(caption = "Southampton")
 ```
-```{r Looking at Portsmouth in more detail}
+```{r Portsmouth LSOA Indices of dep}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_multidep_merged_sf, LAD11NM == "Portsmouth")
 
-# plotting the change in fuel poverty from 2018-2012 of Southampton in more detail
+# plotting the change in indices of dep from 2018-2012 of Southampton in more detail
 ggplot2::ggplot(mapData) + 
   geom_sf(aes(fill = `IMDScore`)) +
   scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 ```
-```{r Looking at Winchester in more detail}
+```{r Winchester LSOA Indices of dep}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_multidep_merged_sf, LAD11NM == "Winchester")
 
-# plotting the fuel poverty 2019 of Winchester in more detail
+# plotting the indices of dep 2019 of Winchester in more detail
 ggplot2::ggplot(mapData) + 
   geom_sf(aes(fill = `IMDScore`)) +
   scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
@@ -494,7 +494,7 @@ ggplot2::ggplot(mapData) +
 
 ### Mapping Fuel Poverty
 #### 2019
-```{r Loading in the LSOA 2021 Fuel Poverty data}
+```{r Loading in the LSOA 2019 Fuel Poverty data}
 inFile<-paste0(dataFolder, "Fuel Poverty/2019 LSOA_Fuel_Poverty.csv")
 lsoa_fuelpov_2019<-readr::read_csv (inFile)
 head(lsoa_fuelpov_2019)
@@ -511,7 +511,7 @@ ggplot2::ggplot(lsoa_fuelpov_2019_merged) +
   labs(caption ="Solent (all LSOAs)")
 ```
 #####Looking at the cities in more detail
-```{r Looking at Southampton in more detail}
+```{r Southampton LSOA Fuel Pov 2019}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_fuelpov_2019_merged, LAD11NM == "Southampton")
 
@@ -521,7 +521,7 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Proportions of households fuel poor (%)", low = "green", high = "red") +
   labs(caption = "Southampton")
 ```
-```{r Looking at Portsmouth in more detail}
+```{r Portsmouth LSOA Fuel Pov 2019}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_fuelpov_2019_merged, LAD11NM == "Portsmouth")
 
@@ -531,7 +531,7 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Proportions of households fuel poor (%)", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 ```
-```{r Looking at Winchester in more detail}
+```{r Winchester LSOA Fuel Pov}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_fuelpov_2019_merged, LAD11NM == "Winchester")
 
@@ -560,7 +560,7 @@ ggplot2::ggplot(lsoa_fuelpov_2018_merged) +
   labs(caption ="Solent (all LSOAs) 2018")
 ```
 #####Looking at the cities in more detail
-```{r Looking at Southampton in more detail}
+```{r Southampton LSOA Fuel Pov 2018}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_fuelpov_2018_merged, LAD11NM == "Southampton")
 
@@ -570,7 +570,7 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Proportions of households fuel poor (%)", low = "green", high = "red") +
   labs(caption = "Southampton 2018")
 ```
-```{r Looking at Portsmouth in more detail}
+```{r Portsmouth LSOA Fuel Pov 2018}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_fuelpov_2018_merged, LAD11NM == "Portsmouth")
 
@@ -580,7 +580,7 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Proportions of households fuel poor (%)", low = "green", high = "red") +
   labs(caption = "Portsmouth 2018")
 ```
-```{r Looking at Winchester in more detail}
+```{r Winchester LOSA Fuel Pov 2018}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_fuelpov_2018_merged, LAD11NM == "Winchester")
 
@@ -613,7 +613,7 @@ ggplot2::ggplot(lsoa_fuelpov20122018) +
   labs(caption ="Solent (all LSOAs)")
 ```
 ##### Looking at cities in more detail
-```{r Looking at Southampton in more detail}
+```{r Southampton LSOA Fuel Pov 2012 2018}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_fuelpov20122018, LAD11NM == "Southampton")
 
@@ -624,7 +624,7 @@ ggplot2::ggplot(mapData) +
   labs(caption = "Southampton")
 #Around Bargate and Freemantle increased fuel poverty
 ```
-```{r Looking at Portsmouth in more detail}
+```{r Portsmouth LSOA Fuel Pov 2012 2018}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_fuelpov20122018, LAD11NM == "Portsmouth")
 
@@ -635,7 +635,7 @@ ggplot2::ggplot(mapData) +
   labs(caption = "Portsmouth")
 #Charles Dickens increased fuel poverty
 ```
-```{r Looking at Winchester in more detail}
+```{r Winchester LSOA Fuel Pov 2012 2018}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_fuelpov20122018, LAD11NM == "Winchester")
 
