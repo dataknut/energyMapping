@@ -78,7 +78,7 @@ ggplot2::ggplot(msoa_merged_sf) +
 ```
 ####Mapping the change from 2010 to 2019
 ```{r Creating the difference in MSOA mean dom elec consumption variable}
-domelec_MSOA_2010<-readr::read_csv(paste0(dataFolder,"energy/electricity/MSOA Dom Elec csv/MSOA_DOM_ELEC_2010.csv"))
+domelec_MSOA_2010<-readr::read_csv(paste0(dataFolder,"energy/electricity/MSOA Dom Elec csv/MSOA_DOM_ELEC_2010.csv"),skip = 1)
 domelec_MSOA_2019<-readr::read_csv(paste0(dataFolder, "energy/electricity/MSOA Dom Elec csv/MSOA_DOM_ELEC_2019.csv"))
 domelec_MSOA_2010$domelec2010<-domelec_MSOA_2010$'Mean consumption (kWh per meter)'
 domelec_MSOA_2019$domelec2019<-domelec_MSOA_2019$'Mean consumption (kWh per meter)'
