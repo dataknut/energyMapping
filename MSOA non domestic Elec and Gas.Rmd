@@ -79,9 +79,26 @@ ggplot2::ggplot(msoa_merged_sf_nondom) +
 ```
 ####Difference from 2010 to 2019
 ```{r Creating the mean electricty consumption from the industrial sector MOSA}
+ndelec_msoa_2010 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2010.csv"))
+ndelec_msoa_2019 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2019.csv"))
+ndelec_msoa_2010$ndelec2010 <-ndelec_msoa_2010$' Mean consumption (kWh per meter)'                                       
+ndelec_msoa_2019$ndelec2019 <-ndelec_msoa_2019$' Mean consumption (kWh per meter) '
+merged_ndelec <-merge(ndelec_msoa_2010, ndelec_msoa_2019, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
+names(merged_ndelec)
+merged_ndelec$ndelec_diff<-merged_ndelec$ndelec2019 - merged_ndelec$ndelec2010
+summary(merged_ndelec)
+```
+
+
+
+
+
+
+
+```{r Creating the mean electricty consumption from the industrial sector MOSA}
 ##BROKEN
-ndelec_msoa_2010 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2010.csv")
-ndelec_msoa_2019 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2019.csv")  
+ndelec_msoa_2010 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2010.csv"))
+ndelec_msoa_2019 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2019.csv"))
 ndelec_msoa_2010$ndelec2010 <-ndelec_msoa_2010$' Mean consumption (kWh per meter)'                                       
 ndelec_msoa_2019$ndelec2019 <-ndelec_msoa_2019$' Mean consumption (kWh per meter) '
 merged_nondomelec <-merge(ndelec_msoa_2010, ndelec_msoa_2019, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
