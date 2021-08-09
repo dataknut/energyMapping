@@ -63,7 +63,7 @@ table(msoa_sf_data$LAD11NM)#how many MSOAs are in each LA
 ####2019
 ```{r Loading in the MSOA electricity consumption data for industry }
 # electricity consumption data for industry at MSOA level (pre downloaded)
-inFile <-paste0(dataFolder, "energy/MSOA_NONDOM_2019.csv")
+inFile <-paste0(dataFolder, "energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2019.csv")
 msoa_elecDatanondom <- readr::read_csv(inFile)
 head(msoa_elecDatanondom)
 ```
@@ -79,31 +79,24 @@ ggplot2::ggplot(msoa_merged_sf_nondom) +
 ```
 ####Difference from 2010 to 2019
 ```{r Creating the mean electricty consumption from the industrial sector MOSA}
-ndelec_msoa_2010 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2010.csv"))
-ndelec_msoa_2019 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2019.csv"))
+ndelec_msoa_2010 <-readr::read_csv(paste0(dataFolder,"energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2010.csv"))
+ndelec_msoa_2019 <-readr::read_csv(paste0(dataFolder,"/energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2019.csv"))
 ndelec_msoa_2010$ndelec2010 <-ndelec_msoa_2010$' Mean consumption (kWh per meter)'                                       
 ndelec_msoa_2019$ndelec2019 <-ndelec_msoa_2019$' Mean consumption (kWh per meter) '
 merged_ndelec <-merge(ndelec_msoa_2010, ndelec_msoa_2019, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
 names(merged_ndelec)
-merged_ndelec$ndelec_diff<-merged_ndelec$ndelec2019 - merged_ndelec$ndelec2010
+merged_ndelec$ndelec_diff<-(as.numeric(merged_ndelec$ndelec2019))-(as.numeric(merged_ndelec$ndelec2010))
 summary(merged_ndelec)
 ```
 
-
-
-
-
-
-
 ```{r Creating the mean electricty consumption from the industrial sector MOSA}
-##BROKEN
-ndelec_msoa_2010 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2010.csv"))
-ndelec_msoa_2019 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2019.csv"))
+ndelec_msoa_2010 <-readr::read_csv(paste0(dataFolder,"energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2010.csv"))
+ndelec_msoa_2019 <-readr::read_csv(paste0(dataFolder,"/energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2019.csv"))
 ndelec_msoa_2010$ndelec2010 <-ndelec_msoa_2010$' Mean consumption (kWh per meter)'                                       
 ndelec_msoa_2019$ndelec2019 <-ndelec_msoa_2019$' Mean consumption (kWh per meter) '
 merged_nondomelec <-merge(ndelec_msoa_2010, ndelec_msoa_2019, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
 names(merged_ndelec)
-merged_ndelec$ndelec_diff<-merged_ndelec$ndelec2019 - merged_ndelec$ndelec2010
+merged_ndelec$ndelec_diff<-merged_ndelec$ndelec2019 - merged_ndelec$ndelec2010 ##BROKEN
 summary(merged_ndelec)
 ```
 ```{r Mapping the difference in mean electricty consumption from the industrial sector MOSA}
@@ -118,7 +111,7 @@ ggplot2::ggplot(msoa_nondom20102019) +
 ####2019
 ```{r Loading in the MSOA gas consumption data for industry }
 # gas consumption data for industry at MSOA level (pre downloaded)
-inFile <-paste0(dataFolder, "energy/MSOA_NonDom_Gas_2019.csv")
+inFile <-paste0(dataFolder, "energy/gas/MSOA NonDom Gas csv/MSOA_NonDom_Gas_2019.csv")
 msoa_gasDatanondom <- readr::read_csv(inFile)
 head(msoa_gasDatanondom)
 ```
@@ -136,8 +129,8 @@ ggplot2::ggplot(msoa_merged_sf_nondom_gas) +
 
 ####Mapping the difference in non domestic gas from 2010 to 2019 
 ```{r Creating the difference in non domestic gas consumption in the MSOA}
-nondomgas_msoa_2010 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NonDom_Gas_2010.csv"))
-nondomgas_msoa_2019<-readr::read_csv(paste0(dataFolder,"energy/MSOA_NonDom_Gas_2019.csv"))
+nondomgas_msoa_2010 <-readr::read_csv(paste0(dataFolder,"/energy/gas/MSOA NonDom Gas csv/MSOA_NonDom_Gas_2010.csv"))
+nondomgas_msoa_2019<-readr::read_csv(paste0(dataFolder,"energy/gas/MSOA NonDom Gas csv/MSOA_NonDom_Gas_2019.csv"))
 nondomgas_msoa_2010$nondomgas2010<-nondomgas_msoa_2010$' Mean consumption (kWh per meter)'
 nondomgas_msoa_2019$nondomgas2019<-nondomgas_msoa_2019$' Mean consumption (kWh per meter)'
 merged_nondomgas20102019<-merge(nondomgas_msoa_2010, nondomgas_msoa_2019, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
