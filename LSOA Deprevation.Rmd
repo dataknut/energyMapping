@@ -1,0 +1,121 @@
+---
+title: "Solent region: Test Maps"
+author: "Meghan Kinglsey-Walsh"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2: 
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    fig_width: 5
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) # set this to FALSE if you don't want the code in the final output
+
+# useful R libraries
+library(ggplot2)
+library(readr)
+library(dplyr)
+
+# GIS libraries
+library(raster)
+library(sf)
+library(spData)
+library(spDataLarge)
+
+dataFolder<-"/Users/megha/Desktop/1. Uni/Masters/Project/Mapping Code/data/" # default for Meghan
+user <- Sys.info()[[7]] # who are we logged in as?
+if(user == "ben"){
+  dataFolder <- path.expand("~/University of Southampton/HCC Energy Landscape Mapping project - Documents/General/data/")
+}
+
+# this will not print anything out when knitted due to the include=FALSE setting in the chunk header
+message("User: ", user)
+message("dataFolder: ", dataFolder)
+```
+
+# Mapping the Lower Layer Super Output Area (LSOA)
+
+```{r Loading in boundary data for the LSOA}
+#The LSOA boundaries for the Solent have been pre-downloaded
+inf<-paste0(dataFolder, "boundaries/LSOA/lsoa_solent.shp")
+message ("Loading LSOA boundaries from file")
+lsoa_sf_data <- sf::read_sf(inf)
+head(lsoa_sf_data)
+table(lsoa_sf_data$LAD11NM)#How many LSOAs are there in each LA
+```
+
+### Mapping the Indices of Multiple Deprivation
+####2019
+```{r Loading in the Indices of Multiple Deprivation data}
+# Multiple deprivation data at MSOA pre downloaded
+inFile <-paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv")
+lsoa_multidep <- readr::read_csv (inFile)
+head(lsoa_multidep)
+```
+
+```{r Mapping the Indices of deprivation for the LSOA}
+lsoa_multidep$LSOA11CD <- lsoa_multidep$lsoa11cd #creating a variable with the LSOA code in the same name as in sf_data
+head(lsoa_multidep)
+lsoa_multidep_merged_sf <- merge(lsoa_sf_data, lsoa_multidep) #merging these
+ggplot2::ggplot(lsoa_multidep_merged_sf) +
+  geom_sf(aes(fill=`IMDScore`))+ # which data set has the scores?
+  scale_fill_continuous(name="IMD Score", low="green",high="red")+
+  labs(caption ="Solent (all LSOAs)")
+```
+#####Looking at the cities in more detail
+```{r Southampton LSOA Indices of dep}
+#Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_multidep_merged_sf, LAD11NM == "Southampton")
+
+# plotting the multiple scales on dep of Southampton in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `IMDScore`)) +
+  scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
+  labs(caption = "Southampton")
+```
+```{r Portsmouth LSOA Indices of dep}
+#Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_multidep_merged_sf, LAD11NM == "Portsmouth")
+
+# plotting the change in indices of dep from 2018-2012 of Southampton in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `IMDScore`)) +
+  scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
+  labs(caption = "Portsmouth")
+```
+```{r Winchester LSOA Indices of dep}
+#Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_multidep_merged_sf, LAD11NM == "Winchester")
+
+# plotting the indices of dep 2019 of Winchester in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `IMDScore`)) +
+  scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
+  labs(caption = "Winchester")
+```
+####Difference from 2010 to 2019
+
+
+here
+
+
+#####Looking at the cities in more detail
+
+
+
+
+
