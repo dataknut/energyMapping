@@ -1,0 +1,145 @@
+---
+title: "Solent region: Test Maps"
+author: "Meghan Kinglsey-Walsh"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2: 
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    fig_width: 5
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) # set this to FALSE if you don't want the code in the final output
+
+# useful R libraries
+library(ggplot2)
+library(readr)
+library(dplyr)
+
+# GIS libraries
+library(raster)
+library(sf)
+library(spData)
+library(spDataLarge)
+
+dataFolder<-"/Users/megha/Desktop/1. Uni/Masters/Project/Mapping Code/data/" # default for Meghan
+user <- Sys.info()[[7]] # who are we logged in as?
+if(user == "ben"){
+  dataFolder <- path.expand("~/University of Southampton/HCC Energy Landscape Mapping project - Documents/General/data/")
+}
+
+# this will not print anything out when knitted due to the include=FALSE setting in the chunk header
+message("User: ", user)
+message("dataFolder: ", dataFolder)
+```
+
+
+
+
+# Mapping the Middle Layer Super Output Areas (MSOA)
+
+```{r Loading in the Boundary Data for the MSOA}
+inf <-paste0(dataFolder, "boundaries/MSOA/msoa_solent.shp")
+message("Loading Middle Layer Super Output Area (MSOA) from file")
+#When using shp files you might also need to have other supplementary files in the same folder to allow it to run https://cfss.uchicago.edu/notes/simple-features/
+msoa_sf_data <- sf::read_sf(inf) 
+head (msoa_sf_data)
+table(msoa_sf_data$LAD11NM)#how many MSOAs are in each LA
+```
+
+## Mapping Commercial
+### Mapping Electricty
+####2019
+```{r Loading in the MSOA electricity consumption data for industry }
+# electricity consumption data for industry at MSOA level (pre downloaded)
+inFile <-paste0(dataFolder, "energy/MSOA_NONDOM_2019.csv")
+msoa_elecDatanondom <- readr::read_csv(inFile)
+head(msoa_elecDatanondom)
+```
+
+```{r Mapping the electrcity consumption of the MSOAs Industrial Sector}
+msoa_elecDatanondom$MSOA11CD <- msoa_elecDatanondom$ 'Middle Layer Super Output Area (MSOA) Code' 
+msoa_merged_sf_nondom <-merge(msoa_sf_data, msoa_elecDatanondom)
+ggplot2::ggplot(msoa_merged_sf_nondom) + 
+  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  scale_fill_continuous(name = "Electricity: Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Solent (all MSOAs)")
+#mapping it
+```
+####Difference from 2010 to 2019
+```{r Creating the mean electricty consumption from the industrial sector MOSA}
+##BROKEN
+NONDOMELEC_MSOA_2010<-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2010.csv")
+NONDOMELEC_MSOA_2019<-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NONDOM_2019.csv")  
+NONDOMELEC_MSOA_2010$nondomelec2010 <-NONDOMELEC_MSOA_2010$' Mean consumption (kWh per meter)'                                       
+NONDOMELEC_MSOA_2019$nondomeelec2019<-NONDOMELEC_MSOA_2019$' Mean consumption (kWh per meter) '
+merged_nondomelec <-merge(NONDOMELEC_MSOA_2010, NONDOMELEC_MSOA_2019, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
+names(merged_nondomelec)
+merged_nondomelec$nondomelec_diff<-merged_nondomelec$nondomeelec2019 - merged_nondomelec$nondomeelec2010
+summary(merged_nondomelec)
+```
+```{r Mapping the difference in mean electricty consumption from the industrial sector MOSA}
+merged_nondomelec$MSOA11CD <- merged_nondomelec$"Middle Layer Super Output Area (MSOA) Code"
+msoa_nondom20102019 <- merge(msoa_sf_data, merged_nondomelec) #merging these
+ggplot2::ggplot(msoa_nondom20102019) +
+  geom_sf(aes(fill=nondom_diff))+ 
+  scale_fill_continuous(name="Change in  mean electricty consumption for the industrial sector", low="green",high="red")+
+  labs(caption ="Solent (all MSOAs)")
+```
+
+### Mapping Gas
+####2019
+```{r Loading in the MSOA gas consumption data for industry }
+# gas consumption data for industry at MSOA level (pre downloaded)
+inFile <-paste0(dataFolder, "energy/MSOA_NonDom_Gas_2019.csv")
+msoa_gasDatanondom <- readr::read_csv(inFile)
+head(msoa_gasDatanondom)
+```
+
+```{r Mapping the gas consumption of the MSOAs Industrial Sector}
+msoa_gasDatanondom$MSOA11CD <- msoa_gasDatanondom$ 'Middle Layer Super Output Area (MSOA) Code' 
+msoa_merged_sf_nondom_gas <-merge(msoa_sf_data, msoa_gasDatanondom)
+ggplot2::ggplot(msoa_merged_sf_nondom_gas) + 
+  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Solent (all MSOAs)")
+#mapping it
+```
+> The holes tell you where there is no non-domestic gas use
+
+####Mapping the difference in non domestic gas from 2010 to 2019 
+```{r Creating the difference in non domestic gas consumption in the MSOA}
+nondomgas_msoa_2010 <-readr::read_csv(paste0(dataFolder,"/energy/MSOA_NonDom_Gas_2010.csv"))
+nondomgas_msoa_2019<-readr::read_csv(paste0(dataFolder,"energy/MSOA_NonDom_Gas_2019.csv"))
+nondomgas_msoa_2010$nondomgas2010<-nondomgas_msoa_2010$' Mean consumption (kWh per meter)'
+nondomgas_msoa_2019$nondomgas2019<-nondomgas_msoa_2019$' Mean consumption (kWh per meter)'
+merged_nondomgas20102019<-merge(nondomgas_msoa_2010, nondomgas_msoa_2019, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
+names(merged_nondomgas20102019)
+merged_nondomgas20102019$nondomgas_diff<-merged_nondomgas20102019$nondomgas2019 - merged_nondomgas20102019$nondomgas2010 ##BROKEN
+summary(merged_nondomgas20102019)
+```
+
+```{r Mapping the change in non domestic gas usage in the MSOA}
+merged_nondomgas20102019$MSOA11CD <- merged_df$"Middle Layer Super Output Area (MSOA) Code" #creating a variable with the LSOA code in the same name as in sf_data
+msoa_nondomgas20102019 <- merge(msoa_sf_data, merged_nondomgas20102019) #merging these
+ggplot2::ggplot(msoa_nondomgas20102019) +
+  geom_sf(aes(fill=pc_diff))+ 
+  scale_fill_continuous(name="Change in mean gas consumption in the indistrial sector", low="green",high="red")+
+  labs(caption ="Solent (all MSOAs)")
+```
+
+
