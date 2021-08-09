@@ -1,0 +1,183 @@
+---
+title: "Solent region: Test Maps"
+author: "Meghan Kinglsey-Walsh"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2: 
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    fig_width: 5
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) # set this to FALSE if you don't want the code in the final output
+
+# useful R libraries
+library(ggplot2)
+library(readr)
+library(dplyr)
+
+# GIS libraries
+library(raster)
+library(sf)
+library(spData)
+library(spDataLarge)
+
+dataFolder<-"/Users/megha/Desktop/1. Uni/Masters/Project/Mapping Code/data/" # default for Meghan
+user <- Sys.info()[[7]] # who are we logged in as?
+if(user == "ben"){
+  dataFolder <- path.expand("~/University of Southampton/HCC Energy Landscape Mapping project - Documents/General/data/")
+}
+
+# this will not print anything out when knitted due to the include=FALSE setting in the chunk header
+message("User: ", user)
+message("dataFolder: ", dataFolder)
+```
+
+
+# Mapping the Lower Layer Super Output Area (LSOA)
+## Mapping Domestic
+### Mapping Electricity consumption
+####2019
+```{r Loading in the LSOA electricty consumption data}
+#Electricty consumption data LSOA pre downloaded
+inFile <-paste0(dataFolder, "energy/LSOA_ELEC_2019.csv")
+lsoa_elecData <- readr::read_csv(inFile)
+lsoa_elecData$LSOA11CD <- lsoa_elecData$`Lower Layer Super Output Area (LSOA) Code`
+head(lsoa_elecData)
+```
+
+```{r Loading in boundary data for the LSOA}
+#The LSOA boundaries for the Solent have been pre-downloaded
+inf<-paste0(dataFolder, "boundaries/LSOA/lsoa_solent.shp")
+message ("Loading LSOA boundaries from file")
+lsoa_sf_data <- sf::read_sf(inf)
+head(lsoa_sf_data)
+table(lsoa_sf_data$LAD11NM)#How many LSOAs are there in each LA
+```
+
+```{r Mapping the electricty consumption of the LSOAs}
+lsoa_merged_sf <- merge(lsoa_sf_data, lsoa_elecData) #merging the boundaries and energy data
+ggplot2::ggplot(lsoa_merged_sf) + 
+  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
+  scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Solent (all LSOAs)")
+#Mapping it
+```
+
+##### Looking at cities in more detail        
+```{r Southampton LSOA dom Elec}
+#Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Southampton")
+
+
+# plotting the electricity consumption of Southampton in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
+  scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Southampton")
+```
+```{r Portsmouth LSOA dom Elec}
+#Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Portsmouth")
+
+# plotting the electricity consumption of Portsmouth in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
+  scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Portsmouth")
+```
+```{r Winchester LSOA dom Elec}
+#Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Winchester")
+
+# plotting the electricity consumption of Winchester in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
+  scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Winchester")
+```
+####Difference between 2010 and 2019 dom elec
+
+here here
+
+#####Cities in more detail
+
+here here here 
+
+
+
+
+### Mapping Gas
+####2019
+```{r Loading in the LSOA gas consumption data}
+#Electricty consumption data LSOA pre downloaded
+inFile <-paste0(dataFolder, "energy/LSOA_GAS_2019.csv")
+lsoa_gasData <- readr::read_csv(inFile)
+lsoa_gasData$LSOA11CD <- lsoa_gasData$`Lower Layer Super Output Area (LSOA) Code`
+head(lsoa_gasData)
+```
+
+```{r Mapping the gas consumption of the LSOAs}
+lsoa_merged_sf_gas <- merge(lsoa_sf_data, lsoa_gasData) #merging the boundaries and energy data
+ggplot2::ggplot(lsoa_merged_sf_gas) + 
+  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Solent (all LSOAs)")
+#Mapping it
+```
+> Aha - this one shows where there is no gas :-)
+
+#####Cities in More detail
+```{r Southampton LSOA Gas}
+#Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Southampton")
+
+# plotting the gas consumption of Southampton in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Southampton")
+```
+```{r Portsmouth LSOA Gas}
+#Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Portsmouth")
+
+# plotting the gas consumption of Portsmouth in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Portsmouth")
+```
+```{r Winchester LSOA Gas}
+#Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
+mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Winchester")
+
+# plotting the gas consumption of Winchester in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Winchester")
+```
+####Difference between 2010 and 2019 dom gas 
+
+here here here 
+
+
+#####Cities in more detail
+
+
+here here here 
