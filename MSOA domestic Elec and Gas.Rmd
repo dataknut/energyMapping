@@ -82,7 +82,7 @@ domelec_MSOA_2010<-readr::read_csv(paste0(dataFolder,"/energy/MSOA_DOM_ELEC_2010
 domelec_MSOA_2019<-readr::read_csv(paste0(dataFolder, "/energy/MSOA_DOM_ELEC_2019.csv"))
 domelec_MSOA_2010$domelec2010<-domelec_MSOA_2010$'Mean consumption (kWh per meter)'
 domelec_MSOA_2019$domelec2019<-domelec_MSOA_2019$'Mean consumption (kWh per meter)'
-merged_domelec<-merge(domelec_MSOA_2010, domelec_MSOA_2019, by="Middle Layer Super Output Area (MSOA) Code", all=TRUE) ##BROKEN
+merged_domelec<-merge(domelec_MSOA_2010, domelec_MSOA_2019, by="Middle Layer Super Output Area (MSOA) Code", all=TRUE)
 names(merged_domelec)
 merged_domelec$domelec_diff<-merged_domelec$domelec2019 - merged_domelec$domelec2010
 summary(merged_domelec)
@@ -127,13 +127,12 @@ summary(merged_domgas)
 ```
 
 ```{r Mapping the change in dom mean gas comsumption}
-merged_domgas$MSOA11CD <- merged_domgas$"MSOA Code" #creating a variable with the LSOA code in the same name as in sf_data
+merged_domgas$MSOA11CD <- merged_domgas$"Middle Layer Super Output Area (MSOA) Code" #creating a variable with the LSOA code in the same name as in sf_data
 msoa_domgas20102019 <- merge(msoa_sf_data, merged_domgas) #merging these
 ggplot2::ggplot(msoa_domgas20102019) +
   geom_sf(aes(fill=mc_diff))+ 
   scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)")
-##BROKEN
 ```
 
 
