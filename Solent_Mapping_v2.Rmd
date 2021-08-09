@@ -49,12 +49,11 @@ message("dataFolder: ", dataFolder)
 
 
 # Mapping the Local Authority
-## Mapping Domestic Electricity Consumption
-
+##Mapping Domestic Electricity Consumption
 ```{r loading in Local Authority electricity consumption data}
-inFile <-paste0(dataFolder, "energy/Subnational_electricity_consumption_statistics_2019.csv")
-la_elecData <- readr::read_csv(inFile)
-summary(la_elecData)
+#inFile <-paste0(dataFolder, "energy/Subnational_electricity_consumption_statistics_2019.csv")
+#la_elecData <- readr::read_csv(inFile)
+#summary(la_elecData)
 ```
 
 ```{r Loading in the Boundary Data for local authorities we are intrested in}
@@ -65,34 +64,34 @@ summary(la_elecData)
 
 # The above is very clever but it takes time
 # Load from file
-la_shpFile <- paste0(dataFolder, "/boundaries/LA/la_solent.shp")
-la_sf_data <- sf::st_read(la_shpFile)
-head(la_sf_data)
+#la_shpFile <- paste0(dataFolder, "/boundaries/LA/la_solent.shp")
+#la_sf_data <- sf::st_read(la_shpFile)
+#]head(la_sf_data)
 ```
 
 ```{r Mapping the local authority electricty consumption}
-la_elecData$lad18cd <- la_elecData$`LA Code`#Creating a variable with the local authority code in the same name of the consumption data
-la_merged_sf <- merge(la_sf_data, la_elecData)#Merge the local Authority boundaries and the consumption data
-ggplot2::ggplot(la_merged_sf) +
-  geom_sf(aes(fill = Total_GWh))+scale_fill_gradient(low="green",high="red")
+#la_elecData$lad18cd <- la_elecData$`LA Code`#Creating a variable with the local authority code in the same name of the consumption data
+#la_merged_sf <- merge(la_sf_data, la_elecData)#Merge the local Authority boundaries and the consumption data
+#ggplot2::ggplot(la_merged_sf) +
+ # geom_sf(aes(fill = Total_GWh))+scale_fill_gradient(low="green",high="red")
 
 ```
 ## Mapping Transport
 ### Freight
 ```{r Loading the  Freight Transport consumption data for the Local Autority}
-inFile <-paste0(dataFolder, "energy/Local Authority level Transport data.csv")
-la_Transport <- readr::read_csv(inFile)
-summary(la_Transport)
-head(la_Transport)
+#inFile <-paste0(dataFolder, "energy/Local Authority level Transport data.csv")
+#la_Transport <- readr::read_csv(inFile)
+#summary(la_Transport)
+#head(la_Transport)
 ```
 
 ```{r Mapping the local authority energy consumption (Freight)}
 
-la_Transport$lad18cd <- la_Transport$Code # Creating a variable with the local authority code in the same name of the consumption data
-la_merged_Transp <- merge(la_sf_data, la_Transport)# Merge the local Authority boundaries and the Transport data
-ggplot2::ggplot(la_merged_Transp) +
-  geom_sf(aes(fill = Freight)) +
-  scale_fill_gradient(name = "Freight: Thousand tonnes of oil equivalent (ktoe)", low="green",high="red")
+#la_Transport$lad18cd <- la_Transport$Code # Creating a variable with the local authority code in the same name of the consumption data
+#la_merged_Transp <- merge(la_sf_data, la_Transport)# Merge the local Authority boundaries and the Transport data
+#ggplot2::ggplot(la_merged_Transp) +
+ # geom_sf(aes(fill = Freight)) +
+  #scale_fill_gradient(name = "Freight: Thousand tonnes of oil equivalent (ktoe)", low="green",high="red")
 ```
 
 ### Personal
@@ -100,72 +99,65 @@ Note: this data is not per household/person so it will correlate (to some extent
 
 ```{r Mapping the local authority energy consumption (Personal)}
 # re-use the merged dataset
-ggplot2::ggplot(la_merged_Transp) +
-  geom_sf(aes(fill = Personal)) +
-  scale_fill_gradient(name = "Personal: Thousand tonnes of oil equivalent (ktoe)", low="green",high="red") 
+#ggplot2::ggplot(la_merged_Transp) +
+ # geom_sf(aes(fill = Personal)) +
+  #scale_fill_gradient(name = "Personal: Thousand tonnes of oil equivalent (ktoe)", low="green",high="red") 
 ```
 ## Mapping Fuel Poverty 
 ### 2019
 
 ```{r Loading in the 2019 Local Authority Fuel Poverty Data}
-inFile<-paste0(dataFolder, "Fuel Poverty/2019 LA_Fuel_Poverty.csv")
-la_fuelpov_2019<-readr::read_csv(inFile)
-head(la_fuelpov_2019)
+#inFile<-paste0(dataFolder, "Fuel Poverty/2019 LA_Fuel_Poverty.csv")
+#la_fuelpov_2019<-readr::read_csv(inFile)
+#head(la_fuelpov_2019)
 ```
 ```{r Mapping Local Authority Fuel Poverty 2019}
-la_fuelpov_2019$lad18cd <- la_fuelpov_2019$`Area Code` # Creating a variable with the local authority code in the same name 
-la_merged_Fuelpov2019 <- merge(la_sf_data, la_fuelpov_2019)# Merge the local Authority boundaries and the Fuel Poverty data
-la_merged_Fuelpov2019$pcFP <- as.numeric(la_merged_Fuelpov2019$`Proportion of households fuel poor (%)`) # convert to numeric from char - why does it load as char??
-ggplot2::ggplot(la_merged_Fuelpov2019) +
-  geom_sf(aes(fill = pcFP)) +
-  scale_fill_gradient(name = "Proportion of households fuel poor (%) 2019", low="green",high="red")
+#la_fuelpov_2019$lad18cd <- la_fuelpov_2019$`Area Code` # Creating a variable with the local authority code in the same name 
+#la_merged_Fuelpov2019 <- merge(la_sf_data, la_fuelpov_2019)# Merge the local Authority boundaries and the Fuel Poverty data
+#la_merged_Fuelpov2019$pcFP <- as.numeric(la_merged_Fuelpov2019$`Proportion of households fuel poor (%)`) # convert to numeric from char - why does it load as char??
+#ggplot2::ggplot(la_merged_Fuelpov2019) +
+ # geom_sf(aes(fill = pcFP)) +
+  #scale_fill_gradient(name = "Proportion of households fuel poor (%) 2019", low="green",high="red")
 ```
 ###2018
 ```{r Loading in the 2018 Local Authority Fuel Poverty Data}
-inFile<-paste0(dataFolder, "Fuel Poverty/2018 LA_Fuel_Poverty.csv")
-la_fuelpov_2018<-readr::read_csv(inFile)
-head(la_fuelpov_2018)
+#inFile<-paste0(dataFolder, "Fuel Poverty/2018 LA_Fuel_Poverty.csv")
+#la_fuelpov_2018<-readr::read_csv(inFile)
+#head(la_fuelpov_2018)
 ```
 ```{r Mapping Local Authority Fuel Poverty 2018}
-la_fuelpov_2018$lad18cd <- la_fuelpov_2018$`Area Code` # Creating a variable with the local authority code in the same name 
-la_merged_Fuelpov2018 <- merge(la_sf_data, la_fuelpov_2018)# Merge the local Authority boundaries and the Fuel Poverty data
-la_merged_Fuelpov2018$pcFP <- as.numeric(la_merged_Fuelpov2018$`Proportion of households fuel poor (%)`) # convert to numeric from char - why does it load as char??
-ggplot2::ggplot(la_merged_Fuelpov2019) +
-  geom_sf(aes(fill = pcFP)) +
-  scale_fill_gradient(name = "Proportion of households fuel poor (%) 2018", low="green",high="red")
+#la_fuelpov_2018$lad18cd <- la_fuelpov_2018$`Area Code` # Creating a variable with the local authority code in the same name 
+#la_merged_Fuelpov2018 <- merge(la_sf_data, la_fuelpov_2018)# Merge the local Authority boundaries and the Fuel Poverty data
+#la_merged_Fuelpov2018$pcFP <- as.numeric(la_merged_Fuelpov2018$`Proportion of households fuel poor (%)`) # convert to numeric from char - why does it load as char??
+#ggplot2::ggplot(la_merged_Fuelpov2019) +
+ # geom_sf(aes(fill = pcFP)) +
+  #scale_fill_gradient(name = "Proportion of households fuel poor (%) 2018", low="green",high="red")
 ```
 
-### Difference in proportion Fuel Poverty 2012 to 2018 (2nd half is BROKEN!)
+### Difference in proportion Fuel Poverty 2012 to 2018 
 
 ```{r Creating the difference in proportion variable}
 #Green indicates a smaller increase in fuel poverty from 2012 to 2018
 #Red indicates an increase in fuel poverty from 2012 to 2018
 #2018 has to be used as the metric for measuring fuel poverty changed in 2019
-fp_LA_2012_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2012 LA_Fuel_Poverty.csv"))
-fp_LA_2018_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2018 LA_Fuel_Poverty.csv"))
-fp_LA_2012_df$pc2012la <- fp_LA_2012_df$`Proportion of households fuel poor (%) 2012`
-fp_LA_2018_df$pc2018la <- fp_LA_2018_df$`Proportion of households fuel poor (%)`
-merged_dfla <- merge(fp_LA_2012_df, fp_LA_2018_df, by = "LA Code", all = TRUE)
-names(merged_dfla)
-merged_dfla$pc_diff <-as.numeric(merged_dfla$pc2018la)- merged_dfla$pc2012la
-summary(merged_dfla)
+#fp_LA_2012_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2012 LA_Fuel_Poverty.csv"))
+#fp_LA_2018_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2018 LA_Fuel_Poverty.csv"))
+#fp_LA_2012_df$pc2012la <- fp_LA_2012_df$`Proportion of households fuel poor (%) 2012`
+#fp_LA_2018_df$pc2018la <- fp_LA_2018_df$`Proportion of households fuel poor (%)`
+#merged_dfla <- merge(fp_LA_2012_df, fp_LA_2018_df, by = "LA Code", all = TRUE)
+#names(merged_dfla)
+#merged_dfla$pc_diff <-as.numeric(merged_dfla$pc2018la)- merged_dfla$pc2012la
+#summary(merged_dfla)
 ```
-
-
-
 
 ```{r Mapping the difference in fuel poverty from 2012 to 2018}
 ##BROKEN
-<<<<<<< HEAD
-merged_dfla$lad18nm <- merged_dfla$`LA Code` # Creating a variable with the local authority code in the same name 
-=======
-merged_dfla$LA11CD <- merged_dfla$`LA Code` # Creating a variable with the local authority code in the same name 
->>>>>>> 4eb5c508a5293a58ae468b5993b2b9cabefef91b
-la_Fuelpov20182012dif <- merge(la_sf_data, merged_dfla) # Merge the local Authority boundaries and the Fuel Poverty data
-ggplot2::ggplot(la_Fuelpov20182012dif) +
-  geom_sf(aes(fill = pc_diff)) +
-  scale_fill_gradient(name = " Difference in proportion of households fuel poor (%)", low="green", high="red") +
-labs(caption="Solent (all LA)")
+#merged_dfla$lad18nm <- merged_dfla$`LA Code` # Creating a variable with the local authority code in the same name 
+#la_Fuelpov20182012dif <- merge(la_sf_data, merged_dfla) # Merge the local Authority boundaries and the Fuel Poverty data
+#ggplot2::ggplot(la_Fuelpov20182012dif) +
+ # geom_sf(aes(fill = pc_diff)) +
+  #scale_fill_gradient(name = " Difference in proportion of households fuel poor (%)", low="green", high="red") +
+#labs(caption="Solent (all LA)")
 ```
 
 # Mapping the Middle Layer Super Output Areas (MSOA)
@@ -248,7 +240,7 @@ ggplot2::ggplot(msoa_domgas20102019) +
   geom_sf(aes(fill=mc_diff))+ 
   scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)")
-##Error saying "Could not reallocate memory"
+##BROKEN
 ```
 
 ## Mapping Commercial
@@ -345,10 +337,11 @@ ggplot2::ggplot(lsoa_merged_sf) +
 #Mapping it
 ```
 
-##### Looking at cities in more detail
+##### Looking at cities in more detail        
 ```{r Southampton LSOA Elec}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Southampton")
+
 
 # plotting the electricity consumption of Southampton in more detail
 ggplot2::ggplot(mapData) + 
