@@ -95,7 +95,7 @@ msoa_nd20102019<-merge(msoa_sf_data, merged_ndelec) #merging these
 ggplot2::ggplot(msoa_nd20102019) +
   geom_sf(aes(fill=" Mean consumption (kWh per meter)"))+ 
   scale_fill_continuous(name="Change in mean electricty consumption for the industrial sector", low="green",high="red")+
-  labs(caption ="Solent (all MSOAs)")
+  labs(caption ="Solent (all MSOAs)")#BROKEN
 ```
 ### Mapping Gas
 ####2019
