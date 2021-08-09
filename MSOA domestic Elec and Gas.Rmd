@@ -90,7 +90,7 @@ summary(merged_domelec)
 ```{r Mapping the MSOA difference in mean dom elec consumption}
 merged_domelec$MSOA11CD<-merged_domelec$"Middle Layer Super Output Area (MSOA) Code"
 msoa_domelec20102019<-merge(msoa_sf_data, merged_domelec)
-ggplot2::ggplot(msoa_domelec20102019)+geom_sf(aes(fill=domelec_diff))+scale_fill_continuous(name="Change in Mean comsumpton of domestic electricty per meter (kWh per meter",low="green",high="red")+labs(caption="Solent(all MSOAs)")
+ggplot2::ggplot(msoa_domelec20102019)+geom_sf(aes(fill=domelec_diff))+scale_fill_continuous(name="Change in Mean comsumpton (kWh per meter)",low="green",high="red")+labs(caption="Solent(all MSOAs)")
 ```
 
 ### Mapping the Gas
