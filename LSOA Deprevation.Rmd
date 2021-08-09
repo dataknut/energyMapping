@@ -1,5 +1,5 @@
 ---
-title: "Solent region: Test Maps"
+title: "LSOA Deprevation maps"
 author: "Meghan Kinglsey-Walsh"
 date: 'Last run at: `r Sys.time()`'
 output:
@@ -76,6 +76,7 @@ ggplot2::ggplot(lsoa_multidep_merged_sf) +
   scale_fill_continuous(name="IMD Score", low="green",high="red")+
   labs(caption ="Solent (all LSOAs)")
 ```
+
 #####Looking at the cities in more detail
 ```{r Southampton LSOA Indices of dep}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
