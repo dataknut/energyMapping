@@ -89,16 +89,6 @@ merged_ndelec$ndelec_diff<-(as.numeric(merged_ndelec$ndelec2019))-(as.numeric(me
 summary(merged_ndelec)
 ```
 
-```{r Creating the mean electricty consumption from the industrial sector MOSA}
-ndelec_msoa_2010 <-readr::read_csv(paste0(dataFolder,"energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2010.csv"))
-ndelec_msoa_2019 <-readr::read_csv(paste0(dataFolder,"/energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2019.csv"))
-ndelec_msoa_2010$ndelec2010 <-ndelec_msoa_2010$' Mean consumption (kWh per meter)'                                       
-ndelec_msoa_2019$ndelec2019 <-ndelec_msoa_2019$' Mean consumption (kWh per meter) '
-merged_nondomelec <-merge(ndelec_msoa_2010, ndelec_msoa_2019, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
-names(merged_ndelec)
-merged_ndelec$ndelec_diff<-as.numeric(merged_ndelec$ndelec2019) - as.numeric(merged_ndelec$ndelec2010) ##BROKEN
-summary(merged_ndelec)
-```
 ```{r Mapping the difference in mean electricty consumption from the industrial sector MOSA}
 merged_ndelec$MSOA11CD<-merged_ndelec$"Middle Layer Super Output Area (MSOA) Code"
 msoa_nd20102019<-merge(msoa_sf_data, merged_ndelec) #merging these
