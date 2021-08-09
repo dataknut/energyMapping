@@ -99,6 +99,34 @@ merged_ndelec$MSOA11CD<-merged_ndelec$"Middle Layer Super Output Area (MSOA) Cod
 msoa_nd20102019<-merge(msoa_sf_data, merged_ndelec) #merging these
 ggplot2::ggplot(msoa_nd20102019)+geom_sf(aes(fill=ndelec_diff/ndelec2010))+scale_fill_continuous(name="Change in electricty:Mean kWh per meter",low="green",high="red")+labs(caption ="Solent (all MSOAs)")##Why does this look like this? Increased efficiency? Businesses closing down?
 ```
+#####Cities in more detail
+```{r Southampton MSOA difference in non dom Elec}
+#Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
+mapData <- dplyr::filter(msoa_nd20102019, LAD11NM == "Southampton")
+# plotting the electricity consumption of Southampton in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = ndelec_diff/ndelec2010)) +
+  scale_fill_continuous(name = "Change in Mean comsumpton (kWh per meter)", low = "green", high = "red") +
+  labs(caption = "Southampton")
+```
+```{r Portsmouth LSOA difference in dom Elec}
+#Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
+mapData <- dplyr::filter(msoa_nd20102019, LAD11NM == "Portsmouth")
+# plotting the electricity consumption of Portsmouth in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = ndelec_diff/ndelec2010)) +
+  scale_fill_continuous(name = "Change in Mean comsumpton (kWh per meter)", low = "green", high = "red") +
+  labs(caption = "Portsmouth")
+```
+```{r Winchester LSOA difference in dom Elec}
+#Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
+mapData <- dplyr::filter(msoa_nd20102019, LAD11NM == "Winchester")
+# plotting the electricity consumption of Winchester in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = ndelec_diff/ndelec2010)) +
+  scale_fill_continuous(name = "Change in Mean comsumpton (kWh per meter)", low = "green", high = "red") +
+  labs(caption = "Winchester")
+```
 ### Mapping Gas
 ####2019
 ```{r Loading in the MSOA gas consumption data for industry }
