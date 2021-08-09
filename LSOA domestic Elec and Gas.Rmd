@@ -1,5 +1,5 @@
 ---
-title: "Solent region: Test Maps"
+title: "LSOA domestic Electricty and Gas maps"
 author: "Meghan Kinglsey-Walsh"
 date: 'Last run at: `r Sys.time()`'
 output:
@@ -54,7 +54,7 @@ message("dataFolder: ", dataFolder)
 ####2019
 ```{r Loading in the LSOA electricty consumption data}
 #Electricty consumption data LSOA pre downloaded
-inFile <-paste0(dataFolder, "energy/LSOA_ELEC_2019.csv")
+inFile <-paste0(dataFolder, "energy/electricity/LSOA Dom Elec csv/LSOA_ELEC_2019.csv")
 lsoa_elecData <- readr::read_csv(inFile)
 lsoa_elecData$LSOA11CD <- lsoa_elecData$`Lower Layer Super Output Area (LSOA) Code`
 head(lsoa_elecData)
@@ -125,7 +125,7 @@ here here here
 ####2019
 ```{r Loading in the LSOA gas consumption data}
 #Electricty consumption data LSOA pre downloaded
-inFile <-paste0(dataFolder, "energy/LSOA_GAS_2019.csv")
+inFile <-paste0(dataFolder, "energy/gas/LSOA Gas csv/LSOA_GAS_2019.csv")
 lsoa_gasData <- readr::read_csv(inFile)
 lsoa_gasData$LSOA11CD <- lsoa_gasData$`Lower Layer Super Output Area (LSOA) Code`
 head(lsoa_gasData)
