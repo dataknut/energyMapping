@@ -53,7 +53,7 @@ message("dataFolder: ", dataFolder)
 ####2019
 ```{r Loading in the MSOA electricity consumption data}
 # electricity consumption data at MSOA level (pre downloaded)
-inFile <-paste0(dataFolder, "energy/MSOA_DOM_ELEC_2019.csv")
+inFile <-paste0(dataFolder, "energy/electricity/MSOA Dom Elec csv/MSOA_DOM_ELEC_2019.csv")
 msoa_elecData <- readr::read_csv(inFile)
 head(msoa_elecData)
 ```
@@ -78,8 +78,8 @@ ggplot2::ggplot(msoa_merged_sf) +
 ```
 ####Mapping the change from 2010 to 2019
 ```{r Creating the difference in MSOA mean dom elec consumption variable}
-domelec_MSOA_2010<-readr::read_csv(paste0(dataFolder,"/energy/MSOA_DOM_ELEC_2010.csv"))
-domelec_MSOA_2019<-readr::read_csv(paste0(dataFolder, "/energy/MSOA_DOM_ELEC_2019.csv"))
+domelec_MSOA_2010<-readr::read_csv(paste0(dataFolder,"energy/electricity/MSOA Dom Elec csv/MSOA_DOM_ELEC_2010.csv"))
+domelec_MSOA_2019<-readr::read_csv(paste0(dataFolder, "energy/electricity/MSOA Dom Elec csv/MSOA_DOM_ELEC_2019.csv"))
 domelec_MSOA_2010$domelec2010<-domelec_MSOA_2010$'Mean consumption (kWh per meter)'
 domelec_MSOA_2019$domelec2019<-domelec_MSOA_2019$'Mean consumption (kWh per meter)'
 merged_domelec<-merge(domelec_MSOA_2010, domelec_MSOA_2019, by="Middle Layer Super Output Area (MSOA) Code", all=TRUE)
@@ -92,12 +92,11 @@ merged_domelec$MSOA11CD<-merged_domelec$"Middle Layer Super Output Area (MSOA) C
 msoa_domelec20102019<-merge(msoa_sf_data, merged_domelec)
 ggplot2::ggplot(msoa_domelec20102019)+geom_sf(aes(fill=domelec_diff))+scale_fill_continuous(name="Change in Mean comsumpton (kWh per meter)",low="green",high="red")+labs(caption="Solent(all MSOAs)")
 ```
-
 ### Mapping the Gas
 ####2019
 ```{r Loading in the MSOA gas consumption data}
 # gas consumption data at MSOA level (pre downloaded)
-inFile <-paste0(dataFolder, "energy/MSOA_GAS_2019.csv")
+inFile <-paste0(dataFolder, "energy/gas/MSOA Dom Gas csv/MSOA_GAS_2019.csv")
 msoa_gasData <- readr::read_csv(inFile)
 head(msoa_gasData)
 ```
@@ -116,8 +115,8 @@ ggplot2::ggplot(msoa_merged_sf_domgas) +
 ```{r Creating the dfference in consumption variable}
 #Green indicates a decrease in gas consumption from 2010 to 2019
 #Red indicates an increase in gas consumption from 2010 to 2019
-domgas_MSOA_2010 <- readr::read_csv(paste0(dataFolder, "/energy/MSOA_GAS_2010.csv"))
-domgas_MSOA_2019 <- readr::read_csv(paste0(dataFolder, "/energy/MSOA_GAS_2019.csv"))
+domgas_MSOA_2010 <- readr::read_csv(paste0(dataFolder, "energy/gas/MSOA Dom Gas csv/MSOA_GAS_2010.csv"))
+domgas_MSOA_2019 <- readr::read_csv(paste0(dataFolder, "energy/gas/MSOA Dom Gas csv/MSOA_GAS_2019.csv"))
 domgas_MSOA_2010$domgas2010 <- domgas_MSOA_2010$`Mean consumption (kWh per meter)`
 domgas_MSOA_2019$domgas2019 <- domgas_MSOA_2019$`Mean consumption (kWh per meter)`
 merged_domgas <- merge(domgas_MSOA_2010, domgas_MSOA_2019, by = "Middle Layer Super Output Area (MSOA) Code", all = TRUE)
