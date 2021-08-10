@@ -108,14 +108,54 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
-####Difference from 2010 to 2019
-
-
-here
-
-
+####Difference from 2015 to 2019
+```{r Creating the dfference in IMD score variable}
+imd_lsoa_2015 <- readr::read_csv(paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2015.csv"))
+imd_lsoa_2019 <- readr::read_csv(paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv"))
+imd_lsoa_2015$imd2015 <- imd_lsoa_2015$`Index of Multiple Deprivation (IMD) Score`
+imd_lsoa_2015$imd2019 <- imd_lsoa_2019$`IMDScore`
+merged_imd <- merge(imd_lsoa_2015, imd_lsoa_2019, by = "lsoa11cd", all = TRUE)
+names(merged_imd)
+merged_imd$imd_diff<-as.numeric(merged_imd$imd2019)-merged_imd$imd2015
+summary(merged_imd)
+```
+```{r Mapping the change in IMD Score}
+merged_imd$lsoa11cd <- merged_imd$"lsoa11cd" #creating a variable with the LSOA code in the same name as in sf_data
+lsoa_imd20152019 <- merge(lsoa_sf_data, merged_imd) #merging these
+names(lsoa_imd20152019)##BROKEN
+##ggplot2::ggplot(lsoa_imd20152019) +
+ ## geom_sf(aes(fill=mc_diff))+ 
+  ##scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
+  ##labs(caption ="Solent (all MSOAs)")
+```
 #####Looking at the cities in more detail
-
+```{r Southampton LSOA Gas}
+#Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
+mapData <- dplyr::filter(merged_imd, LAD11NM == "Southampton")
+# plotting the gas consumption of Southampton in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `imd_diff`)) +
+  scale_fill_continuous(name = "Change in IMD score", low = "green", high = "red") +
+  labs(caption = "Southampton")
+```
+```{r Portsmouth LSOA Gas}
+#Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
+mapData <- dplyr::filter(merged_imd, LAD11NM == "Portsmouth")
+# plotting the gas consumption of Portsmouth in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `imd_diff`)) +
+  scale_fill_continuous(name = "Change in IMD score", low = "green", high = "red") +
+  labs(caption = "Portsmouth")
+```
+```{r Winchester LSOA Gas}
+#Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
+mapData <- dplyr::filter(merged_imd, LAD11NM == "Winchester")
+# plotting the gas consumption of Winchester in more detail
+ggplot2::ggplot(mapData) + 
+  geom_sf(aes(fill = `imd_diff`)) +
+  scale_fill_continuous(name = "Change in IMD score", low = "green", high = "red") +
+  labs(caption = "Winchester")
+```
 
 
 
