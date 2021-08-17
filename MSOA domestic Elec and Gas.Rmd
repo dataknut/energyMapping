@@ -133,5 +133,44 @@ ggplot2::ggplot(msoa_domgas20102019) +
   scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)")
 ```
-##END
+
+Use leaflet version to place geo tile underlay
+
+First check co-ord system so matches leaflet
+
+```{r checkLeaflet}
+# https://dataknut.github.io/mapping-with-r/ONS-open-geography.html
+library(leaflet)
+
+st_coord_sys <- st_crs(msoa_domgas20102019) # check coord system
+st_coord_sys$epsg # current coord system ? Leaflet wants EPSG: 4326
+
+# transform the coord system if required
+if(st_coord_sys$epsg != 4326){
+  map_df_trans <- st_transform(msoa_domgas20102019, "+proj=longlat +datum=WGS84")
+}
+```
+
+
+Plot the leaflet map
+
+```{r mapDiffLeaflet, fig.cap="Change in mean domestic gas kWh/meter"}
+
+#h/t @tom_rushby - see also https://rstudio.github.io/leaflet/colors.html
+
+qpal <- colorNumeric("Reds", map_df_trans$mc_diff, n = 9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(color = ~qpal(mc_diff),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(MSOA11CD), # popups clicked
+              highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+```
+
+## END
 
