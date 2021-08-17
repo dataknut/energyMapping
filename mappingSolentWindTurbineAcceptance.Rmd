@@ -1,5 +1,5 @@
 ---
-title: "Southampton: Mapping Solent Wind Turbine Acceptance"
+title: "Solent: Mapping Solent Wind Turbine Acceptance"
 author: "Ben Anderson"
 date: 'Last run at: `r Sys.time()`'
 output:
