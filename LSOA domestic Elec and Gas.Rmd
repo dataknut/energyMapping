@@ -109,20 +109,20 @@ ggplot2::ggplot(mapData) +
 ```
 ####Difference between 2010 and 2019 dom elec
 ```{r Creating the difference in LSOA mean dom elec consumption variable}
-domelec_LSOA_2010<-readr::read_csv(paste0(dataFolder,"energy/electricity/LSOA Dom Elec csv/LSOA_ELEC_2010.csv"))
-domelec_LSOA_2019<-readr::read_csv(paste0(dataFolder, "energy/electricity/LSOA Dom Elec csv/LSOA_ELEC_2019.csv"))
-domelec_LSOA_2010$de2010<-domelec_LSOA_2010$'Mean domestic electricity consumption \n(kWh per meter).x'
-domelec_LSOA_2019$de2019<-domelec_LSOA_2019$'Mean domestic electricity consumption \n(kWh per meter).y'
-merged_de<-merge(domelec_LSOA_2010, domelec_LSOA_2019, by="Middle Layer Super Output Area (MSOA) Code", all=TRUE)
+domelec_LSOA_2010 <- readr::read_csv(paste0(dataFolder,"energy/electricity/LSOA Dom Elec csv/LSOA_ELEC_2010.csv"))
+domelec_LSOA_2019 <- readr::read_csv(paste0(dataFolder, "energy/electricity/LSOA Dom Elec csv/LSOA_ELEC_2019.csv"))
+domelec_LSOA_2010$de2010 <- domelec_LSOA_2010$'Mean domestic electricity consumption \n(kWh per meter)'
+domelec_LSOA_2019$de2019 <- domelec_LSOA_2019$'Mean domestic electricity consumption \n(kWh per meter)'
+merged_de <- merge(domelec_LSOA_2010, domelec_LSOA_2019, by="Lower Layer Super Output Area (LSOA) Code", all=TRUE)
 names(merged_de)
-merged_de$de_diff<-as.numeric(merged_de$de2019)-as.numeric(merged_de$de2010)##BROKEN
+merged_de$de_diff<-as.numeric(merged_de$de2019)-as.numeric(merged_de$de2010) ##Fixed
 summary(merged_de)
 ```
 
 ```{r Mapping the LSOA difference in mean dom elec consumption}
 merged_de$LSOA11CD<-merged_de$"Middle Layer Super Output Area (MSOA) Code"
 lsoa_de20102019<-merge(lsoa_sf_data, merged_de)
-ggplot2::ggplot(lsoa_de20102019)+geom_sf(aes(fill="de_diff")+scale_fill_continuous(name="Change in Mean comsumpton (kWh per meter)"),low="green",high="red")+labs(caption="Solent(all LSOAs)")
+ggplot2::ggplot(lsoa_de20102019)+geom_sf(aes(fill=de_diff)+scale_fill_continuous(name="Change in Mean comsumpton (kWh per meter)"),low="green",high="red")+labs(caption="Solent(all LSOAs)")
 ##BROKEN
 ```
 
