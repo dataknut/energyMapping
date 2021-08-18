@@ -88,7 +88,7 @@ Mapping wind turbine acceptance model data output.
 
 Based on:
 
- * [Michael Harper's PhD](https://github.com/dataknut/energyMapping) project code
+ * [Michael Harper's PhD](https://mikeyharper.uk/wind-turbinesuccess/) project code and models
  * re-using Tom Rushby's [open geography and leaflet](https://dataknut.github.io/mapping-with-r/ONS-open-geography.html) example.
  
 # Load LSOA boundaries and lookup
@@ -146,7 +146,9 @@ This data is the output of a model described in https://doi.org/10.1016/j.enpol.
 
 "From a resource perspective, the Solent area is highly suitable with many hilly regions and its coastal location offering high wind speeds. However, the opportunity for development is limited by National Parks and Areas of Outstanding Natural Beauty (AONB), and the sites that are located outside of these regions are largely unsuitable for development due to the demographic composition."
 
-The model was based on a a range of physical factors as well as known constraints and a model of local social acceptability. The acceptance indices were originally estimated at 100m squares and have been aggregated to LSOAs (min, max and mean).
+The model was based on a range of physical factors, modelled wind resource potential, known constraints and local socio-demographics (from Census 2011 data). 'Acceptance' refers to the *likelihood of planning acceptance* based on Harper et al's model which was developed using a database of planning outcomes for wind turbines from across the UK.
+
+The acceptance indices were originally estimated at 100m squares and have been aggregated to LSOAs (min, max and mean). Note that the model outputs used here *do not* take account of the current local built form - so they do not indicate feasibility, merely the probability of a successful planning application assuming there is land available on which to build turbines.
 
 Figure \@ref(fig:loadTurbineModelData) maps the acceptance probabilities for the Solent region at LSOA level. 
 
@@ -181,7 +183,7 @@ l_map <- leaflet(wt_sf_trans) %>%
 l_map
 ```
 
-As noted above, modelled wind turbine acceptance levels are low in most of the Solent region - generally due to physical/landscape constraints such as presence of two National Parks, AONBs etc. There are some interesting anomalies - some built up (urban) areas have relatively high acceptance probabilities (up to `r round(100*max(wt_sf_trans$mean))` % ).
+As noted above, modelled wind turbine acceptance levels are low in most of the Solent region - generally due to physical/landscape constraints such as presence of two National Parks, AONBs etc. There are some interesting outliers - some built up (urban) areas have relatively high acceptance probabilities (up to `r round(100*max(wt_sf_trans$mean))` % ). Remembering that the model does not take account of available land (see above), these are most likely due to the socio-demographic factors which tended to increase the probability of acceptance in certain areas (e.g. [areas with higher mean age and higher level of qualification have lower acceptance rates](https://mikeyharper.uk/wind-turbinesuccess/)).
 
 ```{r topTurbineLSOAs}
 setkey(lsoa_turbineAcceptance, LSOA11CD)
