@@ -1,0 +1,235 @@
+---
+title: "Solent: Mapping Solent Wind Turbine Acceptance"
+author: "Ben Anderson"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2: 
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    fig_width: 5
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE) # set this to FALSE if you don't want the code in the final output
+
+# Libraries ----
+# useful R libraries
+library(ggplot2)
+library(data.table)
+
+# GIS libraries
+library(leaflet)
+library(raster)
+library(sf)
+library(spData)
+library(spDataLarge)
+
+# Paramaters ----
+
+dataFolder<-"/Users/megha/Desktop/1. Uni/Masters/Project/Mapping Code/data/" # default for Meghan
+user <- Sys.info()[[7]] # who are we logged in as?
+if(user == "ben"){
+  dataFolder <- path.expand("~/University of Southampton/HCC Energy Landscape Mapping project - Documents/General/data/")
+}
+
+# this will not print anything out when knitted due to the include=FALSE setting in the chunk header
+message("User: ", user)
+message("dataFolder: ", dataFolder)
+
+# Functions ----
+
+selectSoton <- function(dt){
+  # function we can re-use
+  # assumes a data.table
+  # assumes LA name = la_name (may need to make new var first)
+  # returns just the rows that have Local Authority == Southampton
+  select_dt <- dt[la_name %like% "Southampton"]
+  return(select_dt)
+}
+
+selectSolent <- function(dt){
+  # function we can re-use
+  # assumes a data.table
+  # assumes LA name = la_name (may need to make new var first)
+  # returns just the rows that have Local Authority in Solent area
+  select_dt <- dt[la_name == "Southampton" | 
+                   la_name == "Portsmouth" |
+                   la_name == "Winchester" |
+                   la_name == "Eastleigh" |
+                   la_name == "Isle of Wight" |
+                   la_name == "Fareham" |
+                   la_name == "Gosport" |
+                   la_name == "Test Valley" |
+                   la_name == "East Hampshire" |
+                   la_name == "Havant" |
+                   la_name == "New Forest" |
+                   la_name == "Hart" |
+                   la_name == "Basingstoke and Deane"]
+  return(select_dt)
+}
+```
+
+# Intro
+
+Mapping wind turbine acceptance model data output.
+
+Based on:
+
+ * [Michael Harper's PhD](https://github.com/dataknut/energyMapping) project code
+ * re-using Tom Rushby's [open geography and leaflet](https://dataknut.github.io/mapping-with-r/ONS-open-geography.html) example.
+ 
+# Load LSOA boundaries and lookup
+
+We need these for all maps.
+
+```{r loadShapefile}
+#The LSOA boundaries for the Solent have been pre-downloaded
+inf<-paste0(dataFolder, "boundaries/LSOA/lsoa_solent.shp")
+message ("Loading LSOA boundaries from file")
+lsoa_sf_data <- sf::read_sf(inf)
+table(lsoa_sf_data$LAD11NM)#How many LSOAs are there in each LA
+```
+
+```{r loadLookup}
+# pre-prepped names of LSOAs etc
+lsoa_lookup <- data.table::fread(paste0(dataFolder, "lookups/lsoa_lookup_solent.csv"))
+```
+
+
+Build a simple map just to check (Figure \@ref(fig:simpleLSOAMap).
+
+```{r simpleLSOAMap, fig.cap = "LSOA check map (shows MSOA and ward names when clicked"}
+
+lsoa_sf_data <- merge(lsoa_sf_data, lsoa_lookup)
+
+st_coord_sys <- sf::st_crs(lsoa_sf_data) # check coord system
+st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
+
+# transform the coord system if required
+if(st_coord_sys$epsg != 4326){
+ lsoa_sf_trans <- st_transform(lsoa_sf_data, "+proj=longlat +datum=WGS84")
+}
+
+
+leaflet(lsoa_sf_trans) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(fillOpacity = 0.2, weight = 1.5, popup = ~(paste0("LSOA ", LSOA11CD,
+                      "<br> MSOA: " ,MSOA11NM,
+                      "<br> Ward: ", WD20NM,
+                      "<br> RUC11: ", RUC11,
+                      "<br> OAC: ", `Group Name`)
+                      ), # popups clicked
+              highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+```
+
+# Mapping Wind Turbine Acceptance (LSOAs)
+
+This data is the output of a model described in https://doi.org/10.1016/j.enpol.2019.01.002. A further paper used the model to compare the West Midlands and Solent regions: https://doi.org/10.1093/ijlct/ctz006. The latter noted:
+
+"From a resource perspective, the Solent area is highly suitable with many hilly regions and its coastal location offering high wind speeds. However, the opportunity for development is limited by National Parks and Areas of Outstanding Natural Beauty (AONB), and the sites that are located outside of these regions are largely unsuitable for development due to the demographic composition."
+
+The model was based on a a range of physical factors as well as known constraints and a model of local social acceptability. The acceptance indices were originally estimated at 100m squares and have been aggregated to LSOAs (min, max and mean).
+
+Figure \@ref(fig:loadTurbineModelData) maps the acceptance probabilities for the Solent region at LSOA level. 
+
+```{r loadTurbineModelData, fig.cap="Modelled wind turbin planning acceptance probabilities (LSOAs, Solent region)"}
+inFile <- paste0(dataFolder, "harperWindTurbineScores/lsoa_turbine_scores.csv")
+lsoa_turbineAcceptance <- data.table::fread(inFile)
+
+# merge to the transformed sf
+wt_sf_trans <- merge(lsoa_sf_trans, 
+                     lsoa_turbineAcceptance[, .(LSOA11CD, min, mean, max)]) # keep just the columns we want for clarity
+
+#h/t @tom_rushby - see also https://rstudio.github.io/leaflet/colors.html
+
+qpal <- colorNumeric("Greens", wt_sf_trans$mean, n = 9)
+
+l_map <- leaflet(wt_sf_trans) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(color = ~qpal(mean),
+              fillOpacity = 0.5, weight = 1.5, 
+              popup = ~(paste0("LSOA ", LSOA11CD,
+                      "<br> MSOA: " ,MSOA11NM,
+                      "<br> Ward: ", WD20NM,
+                      "<br> RUC11: ", RUC11,
+                      "<br> OAC: ", `Group Name`,
+                      "<br> Mean acceptance probability: ", round(mean*100), "%")), # popups clicked - format using html
+              highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+l_map
+```
+
+As noted above, modelled wind turbine acceptance levels are low in most of the Solent region - generally due to physical/landscape constraints such as presence of two National Parks, AONBs etc. There are some interesting anomalies - some built up (urban) areas have relatively high acceptance probabilities (up to `r round(100*max(wt_sf_trans$mean))` % ).
+
+```{r topTurbineLSOAs}
+setkey(lsoa_turbineAcceptance, LSOA11CD)
+lsoa_turbineAcceptance <- lsoa_turbineAcceptance[lsoa_lookup]
+lsoa_turbineAcceptance[, la_name := LA11NM]
+solent_lsoa_turbineAcceptance <- selectSolent(lsoa_turbineAcceptance)
+t <- solent_lsoa_turbineAcceptance[, .(LSOA11CD, LSOA11NM, WD20NM,RUC11, `Group Name` , 
+                                       min, mean, max)][order(-mean)]
+library(kableExtra)
+h <- head(t, 10)
+kableExtra::kable(h) %>% kable_styling()
+```
+
+# Comparison with Domestic Electricity consumption (LSOAs)
+
+Just for fun. As we saw, wind turbine acceptance levels are low - mostly due to physical constraints 
+
+```{r Loading data}
+# load elec data for LSOA level comparisons
+inFile <-paste0(dataFolder, "energy/electricity/LSOA Dom elec csv/LSOA_ELEC_2019.csv")
+elec_dt <- data.table::fread(inFile)
+elec_dt[, LSOA11CD := `Lower Layer Super Output Area (LSOA) Code`]
+
+# merge to the transformed sf
+wt_sf_trans <- merge(wt_sf_trans, 
+                     elec_dt[, .(LSOA11CD, total_kWh = `Total domestic electricity consumption (kWh)`)]) # keep just the columns we want for clarity
+
+p <- ggplot2::ggplot(wt_sf_trans, aes(x = total_kWh, y = 100*mean, colour = RUC11)) +
+  geom_point() +
+  labs(x = "Total domestic electricity used 2019 (kWh)",
+       y = "Modelled probability of turbine acceptance (%)")
+
+p + geom_smooth()
+```
+
+As we would probably expect, those areas with highest turbine acceptance probabilities tend to have lowest total domestic electricity use.
+
+
+For even more fun, here's the plot split by OAC Group name
+
+```{r oacPlot}
+p + facet_wrap(vars(`Group Name`)) +
+  theme(legend.position="bottom")
+```
+
+# The end
+
+```{r environment}
+R.Version()
+
+```
