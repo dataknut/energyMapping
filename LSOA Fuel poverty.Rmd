@@ -1,5 +1,5 @@
 ---
-title: "Solent region: Test Maps"
+title: "LOSA Fuel Poverty maps"
 author: "Meghan Kinglsey-Walsh"
 date: 'Last run at: `r Sys.time()`'
 output:

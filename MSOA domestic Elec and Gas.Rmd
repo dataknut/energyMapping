@@ -1,5 +1,5 @@
 ---
-title: "MSOA domestic Electricty and Gas maps"
+title: "MSOA domestic Electricity and Gas maps"
 author: "Meghan Kinglsey-Walsh"
 date: 'Last run at: `r Sys.time()`'
 output:
