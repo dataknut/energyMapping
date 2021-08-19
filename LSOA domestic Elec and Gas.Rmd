@@ -130,6 +130,15 @@ ggplot2::ggplot(lsoa_sf_de20102019, aes(fill=de_diff))+
                   geom_sf() +
                   scale_fill_continuous(name="Change in Mean comsumpton (kWh per meter)",low="green",high="red") +
   labs(caption="Solent(all LSOAs)")
+
+lsoa_sf_de20102019$pc_diff <- 100*(lsoa_sf_de20102019$de_diff/lsoa_sf_de20102019$de2010)
+t_diff <-  dplyr::select(as.data.frame(lsoa_sf_de20102019), 
+                         LSOA11CD, `Lower Layer Super Output Area (LSOA) Name.y`,
+                         de2010, de2019, de_diff, pc_diff)
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
+  geom_histogram()
 ```
 
 #####Cities in more detail
@@ -141,6 +150,7 @@ ggplot2::ggplot(mapData) +
   geom_sf(aes(fill = `de_diff`)) +
   scale_fill_continuous(name = "Change in Mean comsumpton (kWh per meter)", low = "green", high = "red") +
   labs(caption = "Southampton")
+#BROKEN
 ```
 ```{r Portsmouth LSOA difference in dom Elec}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail

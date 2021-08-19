@@ -155,14 +155,14 @@ msoa_2010_ndgas$ndgas2010<-msoa_2010_ndgas$'Mean consumption (kWh per meter)'
 msoa_2019_ndgas$ndgas2019<-msoa_2019_ndgas$'Mean consumption (kWh per meter)'
 merged_ndgas20102019<-merge(msoa_2010_ndgas, msoa_2019_ndgas, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
 names(merged_ndgas20102019)
-merged_ndgas20102019$ndgas_diff<-merged_ndgas20102019$nondomgas2019 - merged_nd20102019$nondomgas2010 ##BROKEN
-summary(merged_nondomgas20102019)
+merged_ndgas20102019$ndgas_diff<-merged_ndgas20102019$ndgas2019 - merged_ndgas20102019$ndgas2010 ##BROKEN
+summary(merged_ndgas20102019)
 ```
 
 ```{r Mapping the change in non domestic gas usage in the MSOA}
-merged_nondomgas20102019$MSOA11CD <- merged_df$"Middle Layer Super Output Area (MSOA) Code" #creating a variable with the LSOA code in the same name as in sf_data
-msoa_nondomgas20102019 <- merge(msoa_sf_data, merged_nondomgas20102019) #merging these
-ggplot2::ggplot(msoa_nondomgas20102019) +
+merged_ndgas20102019$MSOA11CD <- merged_df$"Middle Layer Super Output Area (MSOA) Code" #creating a variable with the LSOA code in the same name as in sf_data
+msoa_ndgas20102019 <- merge(msoa_sf_data, merged_ndgas20102019) #merging these
+ggplot2::ggplot(msoa_ndgas20102019) +
   geom_sf(aes(fill=ndgas_diff))+ 
   scale_fill_continuous(name="Change in mean gas consumption in the indistrial sector", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)")
