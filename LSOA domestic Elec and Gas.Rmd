@@ -135,7 +135,7 @@ ggplot2::ggplot(lsoa_sf_de20102019, aes(fill=de_diff))+
 #####Cities in more detail
 ```{r Southampton LSOA difference in dom Elec}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
-mapData <- dplyr::filter(merged_de, LAD11NM == "Southampton")
+mapData <- dplyr::filter(merged_de, LSOA11CD == "Southampton")
 # plotting the electricity consumption of Southampton in more detail
 ggplot2::ggplot(mapData) + 
   geom_sf(aes(fill = `de_diff`)) +
