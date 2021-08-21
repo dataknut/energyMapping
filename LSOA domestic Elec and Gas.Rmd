@@ -154,7 +154,7 @@ ggplot2::ggplot(mapData) +
 ```
 ```{r Portsmouth LSOA difference in dom Elec}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
-mapData <- dplyr::filter(merged_de, LAD11NM == "Portsmouth")
+mapData <- dplyr::filter(merged_de, LSOA11CD == "Portsmouth")
 # plotting the electricity consumption of Portsmouth in more detail
 ggplot2::ggplot(mapData) + 
   geom_sf(aes(fill = `de-diff`)) +
@@ -243,6 +243,7 @@ ggplot2::ggplot(merged_dgas) +
   geom_sf(aes(fill=dg_diff))+ 
   scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)") ##BROKEN
+##Need to change the varibale names to reflect what is actually there
 ```
 
 #####Cities in more detail
