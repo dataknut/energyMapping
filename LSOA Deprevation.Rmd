@@ -64,17 +64,16 @@ table(lsoa_sf_data$LAD11NM)#How many LSOAs are there in each LA
 # Multiple deprivation data at MSOA pre downloaded
 inFile <-paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv")
 lsoa_multidep <- readr::read_csv (inFile)
+lsoa_multidep$LSOA11CD <- lsoa_multidep$'lsoa11cd'
 head(lsoa_multidep)
 ```
 
 ```{r Mapping the Indices of deprivation for the LSOA}
-lsoa_multidep$LSOA11CD <- lsoa_multidep$lsoa11cd #creating a variable with the LSOA code in the same name as in sf_data
-head(lsoa_multidep)
-lsoa_multidep_merged_sf <- merge(lsoa_sf_data, lsoa_multidep) #merging these
-ggplot2::ggplot(lsoa_multidep_merged_sf) +
-  geom_sf(aes(fill=`IMDScore`))+ # which data set has the scores?
-  scale_fill_continuous(name="IMD Score", low="green",high="red")+
-  labs(caption ="Solent (all LSOAs)")
+lsoa_multidep_merged_sf<- merge(lsoa_sf_data, lsoa_multidep)
+ggplot2::ggplot(lsoa_multidep_merged_sf)+
+  geom_sf(aes(fill=IMDScore))+
+  scale_fill_continuous(name="IMD Score", low="green", high="red")+
+  labs(caption="Solent (all LSOAs)")
 ```
 
 #####Looking at the cities in more detail
@@ -84,7 +83,7 @@ mapData <- dplyr::filter(lsoa_multidep_merged_sf, LAD11NM == "Southampton")
 
 # plotting the multiple scales on dep of Southampton in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `IMDScore`)) +
+  geom_sf(aes(fill = IMDScore)) +
   scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
   labs(caption = "Southampton")
 ```
@@ -94,7 +93,7 @@ mapData <- dplyr::filter(lsoa_multidep_merged_sf, LAD11NM == "Portsmouth")
 
 # plotting the change in indices of dep from 2018-2012 of Southampton in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `IMDScore`)) +
+  geom_sf(aes(fill = IMDScore)) +
   scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 ```
@@ -104,7 +103,7 @@ mapData <- dplyr::filter(lsoa_multidep_merged_sf, LAD11NM == "Winchester")
 
 # plotting the indices of dep 2019 of Winchester in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `IMDScore`)) +
+  geom_sf(aes(fill = IMDScore)) +
   scale_fill_continuous(name = "IMD Score", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
@@ -112,9 +111,11 @@ ggplot2::ggplot(mapData) +
 ```{r Creating the dfference in IMD score variable}
 imd_lsoa_2015 <- readr::read_csv(paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2015.csv"))
 imd_lsoa_2019 <- readr::read_csv(paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv"))
-imd_lsoa_2015$imd2015 <- imd_lsoa_2015$`Index of Multiple Deprivation (IMD) Score`
-imd_lsoa_2015$imd2019 <- imd_lsoa_2019$`IMDScore`
-merged_imd <- merge(imd_lsoa_2015, imd_lsoa_2019, by = "lsoa11cd", all = TRUE)
+
+imd_lsoa_2015$imd2015 <- imd_lsoa_2015$'Index of Multiple Deprivation (IMD) Score'
+imd_lsoa_2019$imd2019 <- imd_lsoa_2019$'Index of Multiple Deprivation (IMD) Score'
+
+merged_imd <- merge(imd_lsoa_2015, imd_lsoa_2019, by ='lsoa11cd', all = TRUE)
 names(merged_imd)
 merged_imd$imd_diff<-as.numeric(merged_imd$imd2019)-merged_imd$imd2015
 summary(merged_imd)
