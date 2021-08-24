@@ -113,23 +113,26 @@ domelec_LSOA_2010 <- readr::read_csv(paste0(dataFolder,"energy/electricity/LSOA 
 domelec_LSOA_2019 <- readr::read_csv(paste0(dataFolder, "energy/electricity/LSOA Dom Elec csv/LSOA_ELEC_2019.csv"))
 domelec_LSOA_2010$de2010 <- domelec_LSOA_2010$'Mean domestic electricity consumption \n(kWh per meter)'
 domelec_LSOA_2019$de2019 <- domelec_LSOA_2019$'Mean domestic electricity consumption \n(kWh per meter)'
-# create unambiguos lsoa code for matching to each other and the sf geometry
+# create unambiguous lsoa code for matching to each other and the sf geometry
 domelec_LSOA_2010$LSOA11CD <- domelec_LSOA_2010$`Lower Layer Super Output Area (LSOA) Code`
 domelec_LSOA_2019$LSOA11CD <- domelec_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
   
-merged_de <- merge(domelec_LSOA_2010, domelec_LSOA_2019, by="LSOA11CD", all=TRUE)
+merged_de <- merge(domelec_LSOA_2010, domelec_LSOA_2019, by="Lower Layer Super Output Area (LSOA) Code", all=TRUE)
 names(merged_de)
-merged_de$de_diff<-as.numeric(merged_de$de2019)-as.numeric(merged_de$de2010) ##Fixed
+merged_de$de_diff<-as.numeric(merged_de$de2019)-as.numeric(merged_de$de2010) 
 summary(merged_de)
 ```
 
 ```{r Mapping the LSOA difference in mean dom elec consumption}
 # merge to sf geometry on LSOA11CD
+merged_de$LSOA11CD <- merged_de$"Lower Layer Super Output Area (LSOA) Code"
 lsoa_sf_de20102019<-merge(lsoa_sf_data, merged_de)
-ggplot2::ggplot(lsoa_sf_de20102019, aes(fill=de_diff))+
-                  geom_sf() +
-                  scale_fill_continuous(name="Change in Mean comsumpton (kWh per meter)",low="green",high="red") +
+ggplot2::ggplot(lsoa_sf_de20102019) + geom_sf(aes(fill=de_diff))+
+                  scale_fill_continuous(name="Change in Mean consumpton (kWh per meter)",low="green",high="red") +
   labs(caption="Solent(all LSOAs)")
+
+
+
 
 lsoa_sf_de20102019$pc_diff <- 100*(lsoa_sf_de20102019$de_diff/lsoa_sf_de20102019$de2010)
 t_diff <-  dplyr::select(as.data.frame(lsoa_sf_de20102019), 
@@ -144,11 +147,11 @@ ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
 #####Cities in more detail
 ```{r Southampton LSOA difference in dom Elec}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
-mapData <- dplyr::filter(merged_de, LSOA11CD == "Southampton")
+mapData <- dplyr::filter(lsoa_sf_de20102019, LSOA11NM == "Southampton")
 # plotting the electricity consumption of Southampton in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `de_diff`)) +
-  scale_fill_continuous(name = "Change in Mean comsumpton (kWh per meter)", low = "green", high = "red") +
+  geom_sf(aes(fill= de_diff)) +
+  scale_fill_continuous(name = "Change in Mean consumpton (kWh per meter)", low = "green", high = "red") +
   labs(caption = "Southampton")
 #BROKEN
 ```
