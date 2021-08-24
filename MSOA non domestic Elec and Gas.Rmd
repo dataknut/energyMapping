@@ -93,6 +93,13 @@ summary(merged_ndelec)
 merged_ndelec$MSOA11CD<-merged_ndelec$"Middle Layer Super Output Area (MSOA) Code"
 msoa_nd20102019<-merge(msoa_sf_data, merged_ndelec) #merging these
 ggplot2::ggplot(msoa_nd20102019)+geom_sf(aes(fill=ndelec_diff))+scale_fill_continuous(name="Change in electricty:Mean kWh per meter",low="green",high="red")+labs(caption ="Solent (all MSOAs)")
+
+msoa_nd20102019$pc_diff <-100*(msoa_nd20102019$ndelec_diff/msoa_nd20102019$ndelec2010)
+t_diff <- dplyr::select(as.data.frame(msoa_nd20102019),MSOA11CD, 'Middle Layer Super Output Area (MSOA) Code', ndelec2010, ndelec2019,ndelec_diff, pc_diff)
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
+  geom_histogram()
 ```
 ```{r Mapping the percentage change in mean electricty consumption from the industrial sector MOSA}
 merged_ndelec$MSOA11CD<-merged_ndelec$"Middle Layer Super Output Area (MSOA) Code"
@@ -153,19 +160,31 @@ msoa_2010_ndgas<-readr::read_csv(paste0(dataFolder,"/energy/gas/MSOA NonDom Gas 
 msoa_2019_ndgas<-readr::read_csv(paste0(dataFolder,"energy/gas/MSOA NonDom Gas csv/MSOA_NonDom_Gas_2019.csv"))
 msoa_2010_ndgas$ndgas2010<-msoa_2010_ndgas$'Mean consumption (kWh per meter)'
 msoa_2019_ndgas$ndgas2019<-msoa_2019_ndgas$'Mean consumption (kWh per meter)'
-merged_ndgas20102019<-merge(msoa_2010_ndgas, msoa_2019_ndgas, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
-names(merged_ndgas20102019)
-merged_ndgas20102019$ndgas_diff<-merged_ndgas20102019$ndgas2019 - merged_ndgas20102019$ndgas2010 ##BROKEN
-summary(merged_ndgas20102019)
+
+msoa_2010_ndgas$MSOA11CD <-msoa_2010_ndgas$'Middle Layer Super Output Area (MSOA) Code'
+msoa_2019_ndgas$MSOA11CD <-msoa_2019_ndgas$'Middle Layer Super Output Area (MSOA) Code'
+
+merged_ndgas<-merge(msoa_2010_ndgas, msoa_2019_ndgas, by = "Middle Layer Super Output Area (MSOA) Code", all=TRUE)
+names(merged_ndgas)
+merged_ndgas$ndgas_diff<-merged_ndgas$ndgas2019 - merged_ndgas$ndgas2010 
+summary(merged_ndgas)
 ```
 
 ```{r Mapping the change in non domestic gas usage in the MSOA}
-merged_ndgas20102019$MSOA11CD <- merged_df$"Middle Layer Super Output Area (MSOA) Code" #creating a variable with the LSOA code in the same name as in sf_data
-msoa_ndgas20102019 <- merge(msoa_sf_data, merged_ndgas20102019) #merging these
+merged_ndgas$MSOA11CD <- merged_ndgas$"Middle Layer Super Output Area (MSOA) Code" #creating a variable with the LSOA code in the same name as in sf_data
+
+msoa_ndgas20102019 <- merge(msoa_sf_data, merged_ndgas) #merging these
 ggplot2::ggplot(msoa_ndgas20102019) +
   geom_sf(aes(fill=ndgas_diff))+ 
   scale_fill_continuous(name="Change in mean gas consumption in the indistrial sector", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)")
-##BROKEN
+
+msoa_ndgas20102019$pc_diff <-100*(msoa_ndgas20102019$ndgas_diff/msoa_ndgas20102019$ndgas2010)
+t_diff <- dplyr::select(as.data.frame(msoa_ndgas20102019), MSOA11CD, 'Middle Layer Super Output Area (MSOA) Code', ndgas2010, ndgas2019, ndgas_diff, pc_diff) 
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x=pc_diff))+
+  geom_histogram()
+
 ```
 

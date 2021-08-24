@@ -59,13 +59,23 @@ table(lsoa_sf_data$LAD11NM)#How many LSOAs are there in each LA
 ```
 
 ### Mapping the Indices of Multiple Deprivation
+####2015
+```{r Loading in the Indices of Multiple Deprevation data 2015}
+inFile <-paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2015.csv")
+lsoa_multidep2015 <- readr::read_csv (inFile)
+lsoa_multidep2015$LSOA11CD <- lsoa_multidep2015$'lsoa11cd'
+head(lsoa_multidep2015)
+names(lsoa_multidep2015)
+```
+
 ####2019
-```{r Loading in the Indices of Multiple Deprivation data}
+```{r Loading in the Indices of Multiple Deprivation data 2019}
 # Multiple deprivation data at MSOA pre downloaded
 inFile <-paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv")
 lsoa_multidep <- readr::read_csv (inFile)
 lsoa_multidep$LSOA11CD <- lsoa_multidep$'lsoa11cd'
 head(lsoa_multidep)
+names(lsoa_multidep)
 ```
 
 ```{r Mapping the Indices of deprivation for the LSOA}
@@ -111,11 +121,13 @@ ggplot2::ggplot(mapData) +
 ```{r Creating the dfference in IMD score variable}
 imd_lsoa_2015 <- readr::read_csv(paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2015.csv"))
 imd_lsoa_2019 <- readr::read_csv(paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv"))
+imd_lsoa_2015$imd2015 <- imd_lsoa_2015$'Index of Multiple Deprivation (IMD) Score'
+imd_lsoa_2019$imd2019 <- imd_lsoa_2019$'IMDScore'
 
-imd_lsoa_2015$imd2015 <- imd_lsoa_2015$IMDScore
-imd_lsoa_2019$imd2019 <- imd_lsoa_2019$IMDScore
+imd_lsoa_2015$LSOA11CD <-imd_lsoa_2015$lsoa11cd
+imd_lsoa_2019$LSOA11CD <-imd_lsoa_2019$lsoa11cd
 
-merged_imd <- merge(imd_lsoa_2015, imd_lsoa_2019, by ='lsoa11cd', all = TRUE)
+merged_imd <- merge(imd_lsoa_2015, imd_lsoa_2019, by =lsoa11cd, all = TRUE)
 names(merged_imd)
 merged_imd$imd_diff<-as.numeric(merged_imd$imd2019)-merged_imd$imd2015
 summary(merged_imd)
