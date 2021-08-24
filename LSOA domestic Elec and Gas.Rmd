@@ -127,8 +127,9 @@ summary(merged_de)
 # merge to sf geometry on LSOA11CD
 merged_de$LSOA11CD <- merged_de$"Lower Layer Super Output Area (LSOA) Code"
 lsoa_sf_de20102019<-merge(lsoa_sf_data, merged_de)
-ggplot2::ggplot(lsoa_sf_de20102019) + geom_sf(aes(fill=de_diff))+
-                  scale_fill_continuous(name="Change in Mean consumpton (kWh per meter)",low="green",high="red") +
+ggplot2::ggplot(lsoa_sf_de20102019) +
+  geom_sf(aes(fill=de_diff))+
+  scale_fill_continuous(name="Change in Mean consumpton (kWh per meter)",low="green",high="red") +
   labs(caption="Solent(all LSOAs)")
 
 
@@ -147,7 +148,7 @@ ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
 #####Cities in more detail
 ```{r Southampton LSOA difference in dom Elec}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
-mapData <- dplyr::filter(lsoa_sf_de20102019, LSOA11NM == "Southampton")
+mapData <- dplyr::filter(lsoa_sf_de20102019, LAD11NM == "Southampton")
 # plotting the electricity consumption of Southampton in more detail
 ggplot2::ggplot(mapData) + 
   geom_sf(aes(fill= de_diff)) +
@@ -157,19 +158,19 @@ ggplot2::ggplot(mapData) +
 ```
 ```{r Portsmouth LSOA difference in dom Elec}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
-mapData <- dplyr::filter(merged_de, LSOA11CD == "Portsmouth")
+mapData <- dplyr::filter(lsoa_sf_de20102019, LAD11NM == "Portsmouth")
 # plotting the electricity consumption of Portsmouth in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `de-diff`)) +
+  geom_sf(aes(fill = de_diff)) +
   scale_fill_continuous(name = "Change in Mean comsumpton (kWh per meter)", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 ```
 ```{r Winchester LSOA difference in dom Elec}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
-mapData <- dplyr::filter(merged_de, LAD11NM == "Winchester")
+mapData <- dplyr::filter(lsoa_sf_de20102019, LAD11NM == "Winchester")
 # plotting the electricity consumption of Winchester in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `de_diff`)) +
+  geom_sf(aes(fill = de_diff)) +
   scale_fill_continuous(name = "Change in Mean comsumpton (kWh per meter)", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
@@ -231,20 +232,20 @@ ggplot2::ggplot(mapData) +
 #Red indicates an increase in gas consumption from 2010 to 2019
 dgas_LSOA_2010 <- readr::read_csv(paste0(dataFolder, "energy/gas/LSOA Gas csv/LSOA_GAS_2010.csv"))
 dgas_LSOA_2019 <- readr::read_csv(paste0(dataFolder, "energy/gas/LSOA Gas csv/LSOA_GAS_2019.csv"))
-dgas_LSOA_2010$dgas2010 <- dgas_LSOA_2010$`Mean consumption (kWh per meter)`
-dgas_LSOA_2019$dgas2019 <- dgas_LSOA_2019$`Mean consumption (kWh per meter)`
-merged_dgas <- merge(dgas_LSOA_2010, dgas_LSOA_2019, by = "Middle Layer Super Output Area (MSOA) Code", all = TRUE)
+
+dgas_LSOA_2010$dgas2010 <- dgas_LSOA_2010$'Mean consumption (kWh per meter)'
+dgas_LSOA_2019$dgas2019 <- dgas_LSOA_2019$'Mean consumption (kWh per meter)'
+merged_dgas <- merge(dgas_LSOA_2010, dgas_LSOA_2019, by = "Lower Layer Super Output Area (LSOA) Code", all = TRUE)
 names(merged_dgas)
 merged_dgas$dg_diff<-as.numeric(merged_dgas$dgas2019) - merged_dgas$dgas2010
 summary(merged_dgas)
 ```
 
 ```{r Mapping the change in LSOA dom mean gas comsumption}
-merged_dgas$LSOA11CD <- merged_dgas$"Middle Layer Super Output Area (MSOA) Code" #creating a variable with the LSOA code in the same name as in sf_data
+merged_dgas$LSOA11CD <- merged_dgas$"Lower Layer Super Output Area (LSOA) Code" #creating a variable with the LSOA code in the same name as in sf_data
 lsoa_dgas20102019 <- merge(lsoa_sf_data, merged_dgas) #merging these
-ggplot2::ggplot(merged_dgas) +
-  geom_sf(aes(fill=dg_diff))+ 
-  scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
+ggplot2::ggplot(lsoa_dgas20102019) + geom_sf(aes(fill=dg_diff))+ 
+                  scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)") ##BROKEN
 ##Need to change the varibale names to reflect what is actually there
 ```
@@ -252,31 +253,31 @@ ggplot2::ggplot(merged_dgas) +
 #####Cities in more detail
 ```{r Southampton LSOA Gas}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
-mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Southampton")
+mapData <- dplyr::filter(lsoa_dgas20102019, LAD11NM == "Southampton")
 
 # plotting the gas consumption of Southampton in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  geom_sf(aes(fill = dg_diff)) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Southampton")
 ```
 ```{r Portsmouth LSOA Gas}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
-mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Portsmouth")
+mapData <- dplyr::filter(lsoa_dgas20102019, LAD11NM == "Portsmouth")
 
 # plotting the gas consumption of Portsmouth in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  geom_sf(aes(fill = dg_diff)) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 ```
 ```{r Winchester LSOA Gas}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
-mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Winchester")
+mapData <- dplyr::filter(lsoa_dgas20102019, LAD11NM == "Winchester")
 
 # plotting the gas consumption of Winchester in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  geom_sf(aes(fill = dg_diff)) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
