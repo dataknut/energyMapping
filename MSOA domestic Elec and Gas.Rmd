@@ -47,6 +47,8 @@ message("User: ", user)
 message("dataFolder: ", dataFolder)
 ```
 
+
+
 # Mapping the Middle Layer Super Output Areas (MSOA)
 ## Mapping Domestic
 ### Mapping the Electricity Consumption
@@ -76,6 +78,7 @@ ggplot2::ggplot(msoa_merged_sf) +
   labs(caption = "Solent (all MSOAs)")
 #mapping it
 ```
+
 ####Map with Overlay
 ```{r Check leaflet for dom elec consumption}
 library(leaflet)
@@ -96,12 +99,7 @@ leaflet(map_df_trans) %>%
   addTiles() %>%  # Add default OpenStreetMap map tiles
   addPolygons(color = ~qpal(`Mean consumption (kWh per meter)`),
               fillOpacity = 0.6, weight = 1.5, popup = ~(MSOA11CD), 
-              
-              
-              label =~(popup_text),
-             ##labelOptions -labelOptions(
-               ##style = list("font-weight"= "normal", padding ="2px 2px"),
-               ##direction ="auto"),
+             
   
                highlight = highlightOptions(
                 weight = 5,
