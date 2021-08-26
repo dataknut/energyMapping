@@ -143,7 +143,7 @@ First check co-ord system so matches leaflet
 library(leaflet)
 
 st_coord_sys <- st_crs(msoa_domgas20102019) # check coord system
-st_coord_sys$epsg # current coord system ? Leaflet wants EPSG: 4326
+st_coord_sys$epsg # current coord system 27700 Leaflet wants EPSG: 4326 so we need to transform
 
 # transform the coord system if required
 if(st_coord_sys$epsg != 4326){
@@ -158,13 +158,19 @@ Plot the leaflet map
 
 #h/t @tom_rushby - see also https://rstudio.github.io/leaflet/colors.html
 
-qpal <- colorNumeric("Reds", map_df_trans$mc_diff, n = 9)
+qpal <- colorNumeric("Reds", map_df_trans$mc_diff, n = 9)#This is setting the colour that wil used later?
 
 leaflet(map_df_trans) %>%
   addTiles() %>%  # Add default OpenStreetMap map tiles
   addPolygons(color = ~qpal(mc_diff),
               fillOpacity = 0.6, weight = 1.5, popup = ~(MSOA11CD), # popups clicked
-              highlight = highlightOptions(
+             
+              ##label =~(popup_text),
+             ##labelOptions -labelOptions(
+               ##style = list("font-weight"= "normal", padding ="2px 2px"),
+               ##direction ="auto"),
+  
+               highlight = highlightOptions(
                 weight = 5,
                 color = "#666",
                 fillOpacity = 0.7,
