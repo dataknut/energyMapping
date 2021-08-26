@@ -126,6 +126,14 @@ summary(merged_domelec)
 merged_domelec$MSOA11CD<-merged_domelec$"Middle Layer Super Output Area (MSOA) Code"
 msoa_domelec20102019<-merge(msoa_sf_data, merged_domelec)
 ggplot2::ggplot(msoa_domelec20102019)+geom_sf(aes(fill=domelec_diff))+scale_fill_continuous(name="Change in Mean comsumpton (kWh per meter)",low="green",high="red")+labs(caption="Solent(all MSOAs)")
+
+#Histogram
+msoa_domelec20102019$pc_diff <- 100* (msoa_domelec20102019$domelec_diff/msoa_domelec20102019$domelec2010)
+t_diff <-dplyr::select(as.data.frame(msoa_domelec20102019), MSOA11CD, 'Middle Layer Super Output Area (MSOA) Code',domelec2010, domelec2019, domelec_diff, pc_diff)
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
+  geom_histogram()
 ```
 ####Map with Overlay
 ```{r Check leaflet for Change in dom elec consumption}
@@ -236,6 +244,15 @@ ggplot2::ggplot(msoa_domgas20102019) +
   geom_sf(aes(fill=mc_diff))+ 
   scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)")
+
+#Histogram
+msoa_domgas20102019$pc_diff <- 100* (msoa_domgas20102019$mc_diff/msoa_domgas20102019$domgas2010)
+t_diff <- dplyr::select(as.data.frame(msoa_domgas20102019), MSOA11CD, 'Middle Layer Super Output Area (MSOA) Code',domgas2010, domgas2019, mc_diff, pc_diff)
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
+  geom_histogram()
+
 ```
 
 Use leaflet version to place geo tile underlay
