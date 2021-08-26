@@ -76,6 +76,41 @@ ggplot2::ggplot(msoa_merged_sf) +
   labs(caption = "Solent (all MSOAs)")
 #mapping it
 ```
+####Map with Overlay
+```{r Check leaflet for dom elec consumption}
+library(leaflet)
+
+st_coord_sys <- st_crs(msoa_merged_sf)
+st_coord_sys$epsg
+#Current coor system 27700 Leaflet wants EPSG: 4326 so we need to transform
+
+#Transforming the coord system
+if(st_coord_sys$epsg !=4326){
+  map_df_trans <- st_transform(msoa_merged_sf, "+proj=longlat +datum=WGS84")
+  }
+```
+```{r Plotting leaflet dom elec consumption map}
+qpal <- colorNumeric("Reds", map_df_trans$`Mean consumption (kWh per meter)`, n = 9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(color = ~qpal(`Mean consumption (kWh per meter)`),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(MSOA11CD), 
+              
+              
+              ##label =~(popup_text),
+             ##labelOptions -labelOptions(
+               ##style = list("font-weight"= "normal", padding ="2px 2px"),
+               ##direction ="auto"),
+  
+               highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+```
+
 ####Mapping the change from 2010 to 2019
 ```{r Creating the difference in MSOA mean dom elec consumption variable}
 domelec_MSOA_2010<-readr::read_csv(paste0(dataFolder,"energy/electricity/MSOA Dom Elec csv/MSOA_DOM_ELEC_2010.csv"),skip = 1)
@@ -91,6 +126,40 @@ summary(merged_domelec)
 merged_domelec$MSOA11CD<-merged_domelec$"Middle Layer Super Output Area (MSOA) Code"
 msoa_domelec20102019<-merge(msoa_sf_data, merged_domelec)
 ggplot2::ggplot(msoa_domelec20102019)+geom_sf(aes(fill=domelec_diff))+scale_fill_continuous(name="Change in Mean comsumpton (kWh per meter)",low="green",high="red")+labs(caption="Solent(all MSOAs)")
+```
+####Map with Overlay
+```{r Check leaflet for Change in dom elec consumption}
+library(leaflet)
+
+st_coord_sys <- st_crs(msoa_domelec20102019)
+st_coord_sys$epsg
+#Current coor system 27700 Leaflet wants EPSG: 4326 so we need to transform
+
+#Transforming the coord system
+if(st_coord_sys$epsg !=4326){
+  map_df_trans <- st_transform(msoa_domelec20102019, "+proj=longlat +datum=WGS84")
+  }
+```
+```{r Plotting leaflet for change in dom elec consumption map}
+qpal <- colorNumeric("Reds", map_df_trans$domelec_diff, n = 9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(color = ~qpal(domelec_diff),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(MSOA11CD), 
+              
+              
+              ##label =~(popup_text),
+             ##labelOptions -labelOptions(
+               ##style = list("font-weight"= "normal", padding ="2px 2px"),
+               ##direction ="auto"),
+  
+               highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
 ```
 ### Mapping the Gas
 ####2019
@@ -110,6 +179,41 @@ ggplot2::ggplot(msoa_merged_sf_domgas) +
 #mapping it
 ```
 > Does this match to non-gas areas??
+
+####Map with Overlay
+```{r Check leaflet for dom gas consumption}
+library(leaflet)
+
+st_coord_sys <- st_crs(msoa_merged_sf_domgas)
+st_coord_sys$epsg
+#Current coor system 27700 Leaflet wants EPSG: 4326 so we need to transform
+
+#Transforming the coord system
+if(st_coord_sys$epsg !=4326){
+  map_df_trans <- st_transform(msoa_merged_sf_domgas, "+proj=longlat +datum=WGS84")
+  }
+```
+```{r Plotting leaflet dom gas consumption map}
+qpal <- colorNumeric("Reds", map_df_trans$`Mean consumption (kWh per meter)`, n = 9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(color = ~qpal(`Mean consumption (kWh per meter)`),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(MSOA11CD), 
+              
+              
+              ##label =~(popup_text),
+             ##labelOptions -labelOptions(
+               ##style = list("font-weight"= "normal", padding ="2px 2px"),
+               ##direction ="auto"),
+  
+               highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+```
 
 ####Mapping the change in gas consumption from 2010 to 2019
 ```{r Creating the dfference in consumption variable}
@@ -138,7 +242,7 @@ Use leaflet version to place geo tile underlay
 
 First check co-ord system so matches leaflet
 
-```{r checkLeaflet}
+```{r checkLeaflet for change in dom gas consumption}
 # https://dataknut.github.io/mapping-with-r/ONS-open-geography.html
 library(leaflet)
 
@@ -154,7 +258,7 @@ if(st_coord_sys$epsg != 4326){
 
 Plot the leaflet map
 
-```{r mapDiffLeaflet, fig.cap="Change in mean domestic gas kWh/meter"}
+```{r Plotting leaflet chnage in dom gas consumption map}
 
 #h/t @tom_rushby - see also https://rstudio.github.io/leaflet/colors.html
 
