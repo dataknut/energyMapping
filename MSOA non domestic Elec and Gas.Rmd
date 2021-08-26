@@ -77,6 +77,35 @@ ggplot2::ggplot(msoa_merged_sf_nondom) +
   labs(caption = "Solent (all MSOAs)")
 #mapping it
 ```
+####Map Overlay
+```{r Check leaflet for non dom elec consumption}
+library (leaflet)
+
+st_coord_sys <- st_crs(msoa_merged_sf_nondom)
+st_coord_sys$epsg
+#current coordinate system 27700 Leaflet needs EPSG: 4326 
+
+#Transforming the coor system
+if(st_coord_sys$epsg !=4326) {
+  map_df_trans <- st_transform(msoa_merged_sf_nondom, "+proj=longlat +datum=WGS84")
+}
+
+```
+```{r Plotting leaflet non dom elec consumption map}
+qpal <- colorNumeric("Reds", map_df_trans$`Mean consumption (kWh per meter)`, n=9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>% 
+  addPolygons(color= ~qpal(`Mean consumption (kWh per meter)`), 
+              fillOpacity = 0.6, weight = 1.5, popup= ~(MSOA11CD),
+                        
+                highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+```
 ####Difference from 2010 to 2019
 ```{r Creating the mean electricty consumption from the industrial sector MOSA}
 ndelec_msoa_2010<-readr::read_csv(paste0(dataFolder,"energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2010.csv"))
@@ -101,6 +130,35 @@ head(arrange(t_diff, -pc_diff))
 ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
   geom_histogram()
 ```
+####Map with Overlay
+```{r Check leaflet for change in non dom elec consumption}
+library(leaflet)
+
+st_coord_sys <- st_crs(msoa_nd20102019)
+st_coord_sys$epsg
+#Current coor system 27700 Leaflet wants EPSG: 4326 so we need to transform
+
+#Tranforming the coord system
+if(st_coord_sys$epsg !=4326){
+  map_df_trans <- st_transform(msoa_nd20102019, "+proj=longlat +datum=WGS84")
+}
+```
+```{r Plotting leaflet change in non dom elec consumtpion map}
+qpal <- colorNumeric("Reds", map_df_trans$ndelec_diff, n=9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%
+  addPolygons(color = ~qpal(ndelec_diff),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(MSOA11CD), 
+               highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+```
+
+
 ```{r Mapping the percentage change in mean electricty consumption from the industrial sector MOSA}
 merged_ndelec$MSOA11CD<-merged_ndelec$"Middle Layer Super Output Area (MSOA) Code"
 msoa_nd20102019<-merge(msoa_sf_data, merged_ndelec) #merging these
@@ -185,6 +243,34 @@ head(arrange(t_diff, pc_diff))
 head(arrange(t_diff, -pc_diff))
 ggplot2::ggplot(t_diff, aes(x=pc_diff))+
   geom_histogram()
+
+```
+####Map with Overlay
+```{r Check leaflet for Change in non dom gas consumption}
+library(leaflet)
+
+st_coord_sys <- st_crs(msoa_ndgas20102019)
+st_coord_sys$epsg
+
+#Transporting the coord system
+if(st_coord_sys$epsg !=4326){
+  map_df_trans <- st_transform(msoa_ndgas20102019, "+proj=longlat +datum=WGS84")
+}
+```
+```{r Plotting leaflet change in non dom gas consumption map}
+qpal <- colorNumeric("Reds", map_df_trans$ndgas_diff, n=9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%
+  addPolygons(color=~qpal(ndgas_diff),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(MSOA11CD), 
+             
+  
+               highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
 
 ```
 
