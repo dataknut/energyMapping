@@ -162,20 +162,28 @@ ggplot2::ggplot(mapData) +
 #Red indicates an increase in fuel poverty from 2012 to 2018
 fp_LSOA_2012_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2012 LSOA_Fuel_Poverty.csv"))
 fp_LSOA_2018_df <- readr::read_csv(paste0(dataFolder, "/Fuel Poverty/2018 LSOA_Fuel_Poverty.csv"))
-fp_LSOA_2012_df$pc2012 <- fp_LSOA_2012_df$`Proportion of households fuel poor (%)`
-fp_LSOA_2018_df$pc2018 <- fp_LSOA_2018_df$`Proportion of households fuel poor (%)`
+fp_LSOA_2012_df$fp2012 <- fp_LSOA_2012_df$`Proportion of households fuel poor (%)`
+fp_LSOA_2018_df$fp2018 <- fp_LSOA_2018_df$`Proportion of households fuel poor (%)`
 merged_df <- merge(fp_LSOA_2012_df, fp_LSOA_2018_df, by = "LSOA Code", all = TRUE)
 names(merged_df)
-merged_df$pc_diff <-  as.numeric(merged_df$pc2018) - merged_df$pc2012
+merged_df$fp_diff <-  as.numeric(merged_df$fp2018) - merged_df$fp2012
 summary(merged_df)
 ```
 ```{r Mapping the change in Fuel Poverty}
 merged_df$LSOA11CD <- merged_df$"LSOA Code" #creating a variable with the LSOA code in the same name as in sf_data
 lsoa_fuelpov20122018 <- merge(lsoa_sf_data, merged_df) #merging these
 ggplot2::ggplot(lsoa_fuelpov20122018) +
-  geom_sf(aes(fill=pc_diff))+ 
+  geom_sf(aes(fill=fp_diff))+ 
   scale_fill_continuous(name="Change in Proportions of households fuel poor (%)", low="green",high="red")+
   labs(caption ="Solent (all LSOAs)")
+
+#Histogram 
+lsoa_fuelpov20122018$pc_diff <-100* (lsoa_fuelpov20122018$fp_diff/lsoa_fuelpov20122018$fp2012)
+t_diff <-dplyr::select(as.data.frame(lsoa_fuelpov20122018),LSOA11CD, 'LSOA Code', fp2012, fp2018, fp_diff, pc_diff)
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
+  geom_histogram()
 ```
 ##### Looking at cities in more detail
 ```{r Southampton LSOA Fuel Pov 2012 2018}

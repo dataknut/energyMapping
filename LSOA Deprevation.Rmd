@@ -143,6 +143,14 @@ ggplot2::ggplot(lsoa_imd20152019) +
  geom_sf(aes(fill=imd_diff))+ 
  scale_fill_continuous(name="Change in IMD score", low="green",high="red")+
  labs(caption ="Solent (all LSOAs)")
+
+#Histogram
+lsoa_imd20152019$pc_diff <-100* (lsoa_imd20152019$imd_diff/lsoa_imd20152019$imd2015)
+t_diff <-dplyr::select(as.data.frame(lsoa_imd20152019),LSOA11CD, lsoa11cd, imd2015, imd2019, imd_diff, pc_diff)
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
+  geom_histogram()
 ```
 #####Looking at the cities in more detail
 ```{r Southampton LSOA IMD}

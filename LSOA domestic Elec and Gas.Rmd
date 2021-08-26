@@ -77,7 +77,35 @@ ggplot2::ggplot(lsoa_merged_sf) +
   labs(caption = "Solent (all LSOAs)")
 #Mapping it
 ```
+####Map with Overlay
+```{r Check leaflet for dom electricity consumption}
+library(leaflet)
 
+st_coord_sys <- st_crs(lsoa_merged_sf)
+st_coord_sys$epsg
+
+#Trasforming the coord systen
+if(st_coord_sys$epsg !=4326){
+map_df_trans <- st_transform(lsoa_merged_sf, "+proj=longlat +datum=WGS84")
+}
+```
+```{r Plotting leaflet dom electricity consumption map}
+qpal <- colorNumeric("Reds", map_df_trans$`Mean domestic electricity consumption \n(kWh per meter)`, n=9)
+
+leaflet(map_df_trans) %>%
+addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(color = ~qpal(`Mean domestic electricity consumption \n(kWh per meter)`),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD), 
+             
+  
+               highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+
+```
 ##### Looking at cities in more detail        
 ```{r Southampton LSOA dom Elec}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
@@ -144,6 +172,35 @@ head(arrange(t_diff, -pc_diff))
 ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
   geom_histogram()
 ```
+####Map with Overlay 
+```{r Check leaflet for Change in dom elec consumption}
+library(leaflet)
+
+st_coord_sys <- st_crs(lsoa_sf_de20102019)
+st_coord_sys$epsg
+
+#Transforming the coord system
+if(st_coord_sys$epsg !=4326) {
+  map_df_trans <- st_transform(lsoa_sf_de20102019, "+proj=longlat +datum=WGS84")
+}
+
+```
+```{r Plotting leaflet for change in dom elec consumption map}
+qpal <- colorNumeric("Reds", map_df_trans$de_diff, n=9)
+
+leaflet(map_df_trans) %>% 
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(color = ~qpal(de_diff),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD ), 
+             
+  
+               highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+```
 
 #####Cities in more detail
 ```{r Southampton LSOA difference in dom Elec}
@@ -194,6 +251,36 @@ ggplot2::ggplot(lsoa_merged_sf_gas) +
 #Mapping it
 ```
 > Aha - this one shows where there is no gas :-)
+
+###Map with Overlay
+```{r Check leaflet for dom gas consumption}
+library(leaflet)
+
+st_coord_sys <- st_crs(lsoa_merged_sf_gas)
+st_coord_sys$epsg 
+
+#Transforming the coord system
+if(st_coord_sys$epsg !=4326){
+  map_df_trans <- st_transform(lsoa_merged_sf_gas, "+proj=longlat +datum=WGS84")
+}
+```
+```{r Plotting leaflet dom gas consumption}
+qpal <- colorNumeric("Reds", map_df_trans$`Mean consumption (kWh per meter)`, n=9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%
+  addPolygons(color= ~qpal(`Mean consumption (kWh per meter)`), 
+              fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD),
+              
+              highlight=highlightOptions(
+                weight=5,
+                color="#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+  
+
+```
+
 
 #####Cities in More detail
 ```{r Southampton LSOA Gas}
@@ -249,7 +336,35 @@ ggplot2::ggplot(lsoa_dgas20102019) + geom_sf(aes(fill=dg_diff))+
   labs(caption ="Solent (all MSOAs)") ##BROKEN
 ##Need to change the varibale names to reflect what is actually there
 ```
+####Map with overlay 
+```{r Check leaflet for change i dom gas consumption}
+library(leaflet)
 
+st_coord_sys <- st_crs(lsoa_dgas20102019)
+st_coord_sys$epsg
+
+#Transforming the coor system
+if(st_coord_sys$epsg !=4326){
+  map_df_trans <- st_transform(lsoa_dgas20102019, "+proj=longlat +datum=WGS84")
+}
+
+```
+```{r Plotting leaflet for change in dom gas consumption map}
+qpal <- colorNumeric("Reds", map_df_trans$dg_diff, n=9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%
+  addPolygons(color = ~qpal(dg_diff),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD), 
+             
+  
+               highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+```
 #####Cities in more detail
 ```{r Southampton change in LSOA Gas}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
