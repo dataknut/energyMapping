@@ -98,7 +98,7 @@ leaflet(map_df_trans) %>%
               fillOpacity = 0.6, weight = 1.5, popup = ~(MSOA11CD), 
               
               
-              ##label =~(popup_text),
+              label =~(popup_text),
              ##labelOptions -labelOptions(
                ##style = list("font-weight"= "normal", padding ="2px 2px"),
                ##direction ="auto"),
