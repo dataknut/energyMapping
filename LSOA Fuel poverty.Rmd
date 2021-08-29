@@ -75,6 +75,8 @@ ggplot2::ggplot(lsoa_fuelpov_2019_merged) +
   geom_sf(aes(fill=pcFP))+ 
   scale_fill_continuous(name="Proportion of households fuel poor (%)", low="green",high="red")+
   labs(caption ="Solent (all LSOAs)")
+head(lsoa_fuelpov_2019_merged)
+names(lsoa_fuelpov_2019_merged)
 ```
 #####Looking at the cities in more detail
 ```{r Southampton LSOA Fuel Pov 2019}
@@ -218,3 +220,29 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Change in Proportions of households fuel poor (%)", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
+### Over 65 annd Fuel Poverty
+```{r Loading in the Census age data}
+inFile<-paste0(dataFolder, "census/KS102EW-age-categories.csv")
+census_age<-readr::read_csv (inFile)
+census_age$'Local Authority Code'<- census_age$'geography code'
+head(census_age)
+names(census_age)
+```
+```{r Mapping the fuel poverty in over 65s}
+#census_age$"LSOA11CD" <- census_age$"geography code"
+Census_age_fp <- merge(lsoa_fuelpov_2019_merged, census_age)
+names(Census_age_fp)
+ggplot(Census_age_fp, aes(x='Proportion Over 65', y=pcFP)) 
+
+```
+
+
+
+
+
+
+
+
+
+
+
