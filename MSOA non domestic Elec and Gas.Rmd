@@ -76,6 +76,7 @@ ggplot2::ggplot(msoa_merged_sf_nondom) +
   scale_fill_continuous(name = "Electricity: Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Solent (all MSOAs)")
 #mapping it
+mean(msoa_merged_sf_nondom$`Mean consumption (kWh per meter)`)
 ```
 ####Map Overlay
 ```{r Check leaflet for non dom elec consumption}
