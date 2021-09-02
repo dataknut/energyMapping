@@ -213,6 +213,7 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
        y = "% change")
 ```
 
+Try adding facets for each Local Authority
 ```{r addFacetsToElecDiff}
 # or without colour but using facets for Local Authorities
 ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
