@@ -228,11 +228,25 @@ census_age$'LSOA11CD'<- census_age$'geography code'
 head(census_age)
 names(census_age)
 ```
-```{r Mapping the fuel poverty in over 65s}
+
+```{r Plotting the fuel poverty in over 65s}
 #census_age$"LSOA11CD" <- census_age$"geography code"
-Census_age_fp <- merge(lsoa_fuelpov_2019_merged, census_age)
+Census_age_fp <- merge(lsoa_fuelpov_2019, census_age, by = "LSOA11CD")
 names(Census_age_fp)
-ggplot(Census_age_fp, aes(x=as.numeric('Proportion Over 65'), y=pcFP)) +
+
+# select the variables we want for clarity
+df <- dplyr::select(Census_age_fp, LSOA11CD, "LA Name", "Proportion of households fuel poor (%)", "Proportion Over 65")
+
+df$propFP <- as.numeric(substring(df$`Proportion Over 65`, 
+                                  1, 
+                                  nchar(df$`Proportion Over 65`)-1)
+                        )
+
+head(df)
+# select the places we want
+
+ggplot2::ggplot(df, aes(x=`Proportion of households fuel poor (%)`, 
+               y=propFP)) +
   geom_point()
 
 ```
