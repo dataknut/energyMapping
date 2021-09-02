@@ -172,14 +172,30 @@ head(arrange(t_diff, -pc_diff))
 ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
   geom_histogram()
 ```
-####Plotting the change in dom elec consumption against the deprevation score
-```{r Loading in the Deprevation score data}
+#### Plotting the change in dom elec consumption against the deprivation score
+
+Loading deprivation data and double checking what the IMD Decile means
+
+```{r Loading in the Deprivation score data}
 inFile<-paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv")
 LSOAdep<-readr::read_csv(inFile)
 LSOAdep$'LSOA11CD' <- LSOAdep$'lsoa11cd'
 head(LSOAdep)
 names(LSOAdep)
+
+# check IMD decile is higher or lower with higher deprivation
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y = IMDScore, 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "IMD Score")
 ```
+
+NB: IMD Decile 10 has _LOWER_ mean IMD score!
+
 ```{r plotting change in elec usage against dep}
 LSOAdepelec <- merge(merged_de, LSOAdep, by= "LSOA11CD")
 names(LSOAdepelec)
@@ -214,6 +230,7 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
 ```
 
 Try adding facets for each Local Authority
+
 ```{r addFacetsToElecDiff}
 # or without colour but using facets for Local Authorities
 ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
