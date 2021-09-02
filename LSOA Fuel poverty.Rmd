@@ -224,6 +224,7 @@ ggplot2::ggplot(mapData) +
 ```{r Loading in the Census age data}
 inFile<-paste0(dataFolder, "census/KS102EW-age-categories.csv")
 census_age<-readr::read_csv (inFile)
+census_age$oldpop <- census_age$'Over 65s'/census_age$'Age: All usual residents; measures: Value'
 census_age$'LSOA11CD'<- census_age$'geography code'
 head(census_age)
 names(census_age)
@@ -232,7 +233,6 @@ names(census_age)
 #census_age$"LSOA11CD" <- census_age$"geography code"
 Census_age_fp <- merge(lsoa_fuelpov_2019, census_age, by = "LSOA11CD")
 names(Census_age_fp)
-census_age$oldpop <- Census_age_fp$'Over 65s'/Census_age_fp$'Age: All usual residents; measures: Value'
 ggplot(Census_age_fp, aes(x=oldpop, y='Proportion of households fuel poor (%)')) +
   geom_point()
 
