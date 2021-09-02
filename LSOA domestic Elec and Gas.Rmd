@@ -202,8 +202,24 @@ Solent <- dplyr::filter(df, `Local Authority Name.x` == "Basingstoke and Deane"|
                            `Local Authority Name.x` == "Winchester"|
                            `Local Authority Name.x` == "Isle of Wight"
                            )
+head(Solent)
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =100*(de_diff/de2010), 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "% change")
 
-ggplot(Solent,aes(x =as.factor(IMD_Decile)), y =(de_diff/de2010), colour =as.factor(IMD_Decile), group =IMD_Decile) +  geom_boxplot()
+# or without colour but using facets for Local Authorities
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =100*(de_diff/de2010), 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "% change") +
+  facet_wrap(`Local Authority Name.x` ~ .)
 
 nrow(Solent)
 ```
