@@ -172,6 +172,49 @@ head(arrange(t_diff, -pc_diff))
 ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
   geom_histogram()
 ```
+####Plotting the change in dom elec consumption against the deprevation score
+```{r Loading in the Deprevation score data}
+inFile<-paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv")
+LSOAdep<-readr::read_csv(inFile)
+LSOAdep$'LSOA11CD' <- LSOAdep$'lsoa11cd'
+head(LSOAdep)
+names(LSOAdep)
+```
+```{r plotting change in elec usage against dep}
+LSOAdepelec <- merge(merged_de, LSOAdep, by= "LSOA11CD")
+names(LSOAdepelec)
+df <- dplyr::select(LSOAdepelec, LSOA11CD, "Local Authority Name.x", "de_diff", IMDScore, de2010, IMD_Decile
+)
+
+head(df)
+Solent <- dplyr::filter(df, `Local Authority Name.x` == "Basingstoke and Deane"|
+                           `Local Authority Name.x` == "East Hampshire"|
+                           `Local Authority Name.x` == "Eastleigh"|
+                           `Local Authority Name.x` == "Fareham"|
+                           `Local Authority Name.x` == "Gosport"|
+                           `Local Authority Name.x` == "Hart"|
+                           `Local Authority Name.x` == "Havant"|
+                           `Local Authority Name.x` == "New Forest"|
+                           `Local Authority Name.x` == "Portsmouth"|
+                           `Local Authority Name.x` == "Rushmoor"|
+                           `Local Authority Name.x` == "Southampton"|
+                           `Local Authority Name.x` == "Test Valley"|
+                           `Local Authority Name.x` == "Winchester"|
+                           `Local Authority Name.x` == "Isle of Wight"
+                           )
+
+ggplot(Solent,aes(x =as.factor(IMD_Decile)), y =(de_diff/de2010), colour =as.factor(IMD_Decile), group =IMD_Decile) +  geom_boxplot()
+
+nrow(Solent)
+```
+
+
+
+
+
+
+
+
 ####Map with Overlay 
 ```{r Check leaflet for Change in dom elec consumption}
 library(leaflet)
