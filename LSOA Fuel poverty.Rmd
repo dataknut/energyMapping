@@ -243,10 +243,10 @@ df$propFP <- as.numeric(substring(df$`Proportion Over 65`,
                         )
 
 head(df)
-# select the places we want
+# select the places we want here
 
-ggplot2::ggplot(df, aes(x=`Proportion of households fuel poor (%)`, 
-               y=propFP)) +
+census_age$oldpop <- Census_age_fp$'Over 65s'/Census_age_fp$'Age: All usual residents; measures: Value'
+ggplot(Census_age_fp, aes(x=oldpop, y=`Proportion of households fuel poor (%)`)) +
   geom_point()
 
 ```
