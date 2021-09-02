@@ -183,13 +183,6 @@ LSOAdep$'LSOA11CD' <- LSOAdep$'lsoa11cd'
 head(LSOAdep)
 names(LSOAdep)
 
-# check IMD decile is higher with higher deprivation
-library(data.table)
-dt <- as.data.table(Solent)
-dt[, .(nLSOAs = .N,
-       meanIMDScore = mean(IMDScore)),
-   keyby = .(IMD_Decile)]
-
 ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
                    y = IMDScore, 
                    group = IMD_Decile,
@@ -200,7 +193,8 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
        y = "IMD Score")
 ```
 
-NB: IMD Decile 10 has _LOWER_ IMD score!
+NB: IMD Decile 10 has _LOWER_ mean IMD score! Which is what it says in the Excel workbok...
+
 
 ```{r plotting change in elec usage against dep}
 LSOAdepelec <- merge(merged_de, LSOAdep, by= "LSOA11CD")
