@@ -249,14 +249,6 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
 
 nrow(Solent)
 ```
-
-
-
-
-
-
-
-
 ####Map with Overlay 
 ```{r Check leaflet for Change in dom elec consumption}
 library(leaflet)
