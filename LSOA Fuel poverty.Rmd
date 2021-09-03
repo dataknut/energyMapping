@@ -220,7 +220,7 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Change in Proportions of households fuel poor (%)", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
-### Over 65 annd Fuel Poverty
+### Over 65 and Fuel Poverty
 ```{r Loading in the Census age data}
 inFile<-paste0(dataFolder, "census/KS102EW-age-categories.csv")
 census_age<-readr::read_csv (inFile)

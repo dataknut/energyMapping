@@ -406,7 +406,77 @@ ggplot2::ggplot(lsoa_dgas20102019) + geom_sf(aes(fill=dg_diff))+
                   scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)") ##BROKEN
 ##Need to change the varibale names to reflect what is actually there
+
+lsoa_dgas20102019$pc_diff <- 100*(lsoa_dgas20102019$dg_diff/lsoa_dgas20102019$dgas2010)
+t_diff <-  dplyr::select(as.data.frame(lsoa_dgas20102019), 
+                         LSOA11CD, `Lower Layer Super Output Area (LSOA) Code`,
+                         dgas2010, dgas2019, dg_diff, pc_diff)
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
+  geom_histogram()
+
+
+
+
 ```
+####Plotting the change in gas usage against the deprevation 
+```{r plotting change in gas usage against dep}
+LSOAdepgas <- merge(merged_dgas, LSOAdep, by= "LSOA11CD")
+names(LSOAdepgas)
+df <- dplyr::select(LSOAdepgas, LSOA11CD, "Local Authority Name.x", dg_diff, IMDScore, dgas2010, IMD_Decile
+)
+
+head(df)
+Solent <- dplyr::filter(df, `Local Authority Name.x` == "Basingstoke and Deane"|
+                           `Local Authority Name.x` == "East Hampshire"|
+                           `Local Authority Name.x` == "Eastleigh"|
+                           `Local Authority Name.x` == "Fareham"|
+                           `Local Authority Name.x` == "Gosport"|
+                           `Local Authority Name.x` == "Hart"|
+                           `Local Authority Name.x` == "Havant"|
+                           `Local Authority Name.x` == "New Forest"|
+                           `Local Authority Name.x` == "Portsmouth"|
+                           `Local Authority Name.x` == "Rushmoor"|
+                           `Local Authority Name.x` == "Southampton"|
+                           `Local Authority Name.x` == "Test Valley"|
+                           `Local Authority Name.x` == "Winchester"|
+                           `Local Authority Name.x` == "Isle of Wight"
+                           )
+head(Solent)
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =100*(dg_diff/dgas2010), 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "% change")
+```
+
+Try adding facets for each Local Authority
+
+```{r addFacetsToElecDiff}
+# or without colour but using facets for Local Authorities
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =100*(dg_diff/dgas2010), 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "% change") +
+  facet_wrap(`Local Authority Name.x` ~ .)
+
+nrow(Solent)
+```
+
+
+
+
+
+
+
+
+
 ####Map with overlay 
 ```{r Check leaflet for change i dom gas consumption}
 library(leaflet)
