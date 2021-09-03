@@ -424,7 +424,7 @@ ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
 ```{r plotting change in gas usage against dep}
 LSOAdepgas <- merge(merged_dgas, LSOAdep, by= "LSOA11CD")
 names(LSOAdepgas)
-df <- dplyr::select(LSOAdepgas, LSOA11CD, "Local Authority Name.x", dg_diff, IMDScore, dgas2010, IMD_Decile
+df <- dplyr::select(LSOAdepgas, LSOA11CD, "Local Authority Name.x", dg_diff, IMDScore, dgas2010, IMD_Decile, dgas2019
 )
 
 head(df)
@@ -456,7 +456,7 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
 
 Try adding facets for each Local Authority
 
-```{r addFacetsToElecDiff}
+```{r addFacetsTogasDiff}
 # or without colour but using facets for Local Authorities
 Solentex <- filter(Solent,100*(dg_diff/dgas2010)<50)
 ggplot(Solentex, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
@@ -469,15 +469,30 @@ ggplot(Solentex, aes(x = as.factor(IMD_Decile), # forces a box plot at each valu
 
 nrow(Solent)
 ```
+#####Plotting the gas usage against deprevation
+```{r Boxplot of the gas consumption and deprevation}
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =dgas2019, 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "Gas Consumption")
 
+```
+```{r addFacetsTogasconsumption}
+# or without colour but using facets for Local Authorities
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =dgas2019, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "Gas Consumption") +
+  facet_wrap(`Local Authority Name.x` ~ .)
 
-
-
-
-
-
-
-
+nrow(Solent)
+```
 ####Map with overlay 
 ```{r Check leaflet for change i dom gas consumption}
 library(leaflet)
