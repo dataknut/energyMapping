@@ -199,7 +199,7 @@ NB: IMD Decile 10 has _LOWER_ mean IMD score! Which is what it says in the Excel
 ```{r plotting change in elec usage against dep}
 LSOAdepelec <- merge(merged_de, LSOAdep, by= "LSOA11CD")
 names(LSOAdepelec)
-df <- dplyr::select(LSOAdepelec, LSOA11CD, "Local Authority Name.x", "de_diff", IMDScore, de2010, IMD_Decile
+df <- dplyr::select(LSOAdepelec, LSOA11CD, "Local Authority Name.x", "de_diff", IMDScore, de2010, IMD_Decile, de2019
 )
 
 head(df)
@@ -243,6 +243,32 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
 
 nrow(Solent)
 ```
+####Plotting the relationship between Electricty consumption and deprevation
+```{r plotting electricty consumption against deprevation}
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =de2019, 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "Electricity Consumption")
+```
+```{r addFacetsToElecconsumption}
+# or without colour but using facets for Local Authorities
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =de2019, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "Electricty Consumption") +
+  facet_wrap(`Local Authority Name.x` ~ .)
+
+nrow(Solent)
+```
+
+
+
 ####Map with Overlay 
 ```{r Check leaflet for Change in dom elec consumption}
 library(leaflet)
@@ -494,7 +520,7 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
 nrow(Solent)
 ```
 ####Map with overlay 
-```{r Check leaflet for change i dom gas consumption}
+```{r Check leaflet for change in dom gas consumption}
 library(leaflet)
 
 st_coord_sys <- st_crs(lsoa_dgas20102019)

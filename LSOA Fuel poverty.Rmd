@@ -194,7 +194,7 @@ mapData <- dplyr::filter(lsoa_fuelpov20122018, LAD11NM == "Southampton")
 
 # plotting the change in fuel poverty from 2018-2012 of Southampton in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = pc_diff)) +
+  geom_sf(aes(fill = fp_diff)) +
   scale_fill_continuous(name = "Change in Proportions of households fuel poor (%)", low = "green", high = "red") +
   labs(caption = "Southampton")
 #Around Bargate and Freemantle increased fuel poverty
@@ -205,7 +205,7 @@ mapData <- dplyr::filter(lsoa_fuelpov20122018, LAD11NM == "Portsmouth")
 
 # plotting the change in fuel poverty from 2018-2012 of Portsmouth in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = pc_diff)) +
+  geom_sf(aes(fill = fp_diff)) +
   scale_fill_continuous(name = "Change in Proportions of households fuel poor (%)", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 #Charles Dickens increased fuel poverty
@@ -216,52 +216,144 @@ mapData <- dplyr::filter(lsoa_fuelpov20122018, LAD11NM == "Winchester")
 
 # plotting the change in fuel poverty from 2018-2012 of Winchester in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = pc_diff)) +
+  geom_sf(aes(fill = fp_diff)) +
   scale_fill_continuous(name = "Change in Proportions of households fuel poor (%)", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
-### Over 65 and Fuel Poverty
+### Linking age and Fuel Poverty
 ```{r Loading in the Census age data}
 inFile<-paste0(dataFolder, "census/KS102EW-age-categories.csv")
 census_age<-readr::read_csv (inFile)
 census_age$'LSOA11CD'<- census_age$'geography code'
+census_age$prop_65m <- census_age$`Over 65s`/census_age$`Age: All usual residents; measures: Value`
 head(census_age)
 names(census_age)
+message("Original Proportion Over 65:")
+summary(census_age$`Proportion Over 65`)
+message("New prop_65m:")
+summary(census_age$prop_65m)
 ```
+
+## 2012 Fuel Poverty & Census 2011 Data
 ```{r Plotting the fuel poverty in over 65s}
 #census_age$"LSOA11CD" <- census_age$"geography code"
-Census_age_fp <- merge(lsoa_fuelpov_2019, census_age, by = "LSOA11CD")
-names(Census_age_fp)
+fp_LSOA_2012_df$LSOA11CD <- fp_LSOA_2012_df$`LSOA Code`
+Census_age_2012fp <- merge(fp_LSOA_2012_df, census_age, by = "LSOA11CD")
 # select the variables we want for clarity
-df <- dplyr::select(Census_age_fp, LSOA11CD, "LA Name", "Proportion of households fuel poor (%)", "Proportion Over 65")
-
-head(df)
-table(df$`LA Name`)
-Solent <- dplyr::filter(df, `LA Name` == "Basingstoke and Deane"|
-                           `LA Name` == "East Hampshire"|
-                           `LA Name` == "Eastleigh"|
-                           `LA Name` == "Fareham"|
-                           `LA Name` == "Gosport"|
-                           `LA Name` == "Hart"|
-                           `LA Name` == "Havant"|
-                           `LA Name` == "New Forest"|
-                           `LA Name` == "Portsmouth"|
-                           `LA Name` == "Rushmoor"|
-                           `LA Name` == "Southampton"|
-                           `LA Name` == "Test Valley"|
-                           `LA Name` == "Winchester"|
-                           `LA Name` == "Isle of Wight"
-                           )
-
+df_2012 <- dplyr::select(Census_age_2012fp, LSOA11CD, "LA Name", "Proportion of households fuel poor (%)", "Proportion Over 65", prop_65m)
+head(df_2012)
+# table(df$`LA Name`)
+df_2012$la_name <- df_2012$`LA Name` # make a new variable with an easier name
+df_2012$pcFuelPoor <- df_2012$`Proportion of households fuel poor (%)` # same - this is actually a % not a proportion!
 # select the places we want here
-ggplot(Solent, aes(x=`Proportion Over 65`, y=`Proportion of households fuel poor (%)`)) +
-  geom_point()
-nrow(Solent)
-table(Solent$`LA Name`)
+getSolent <- function(df){
+  # assumes we are filtering on la_name
+  res <- dplyr::filter(df, la_name == "Basingstoke and Deane"|
+                           la_name == "East Hampshire"|
+                           la_name == "Eastleigh"|
+                           la_name == "Fareham"|
+                           la_name == "Gosport"|
+                           la_name == "Hart"|
+                           la_name == "Havant"|
+                           la_name == "New Forest"|
+                           la_name == "Portsmouth"|
+                           la_name == "Rushmoor"|
+                           la_name == "Southampton"|
+                           la_name == "Test Valley"|
+                           la_name == "Winchester"|
+                           la_name == "Isle of Wight"
+                           )
+return(res)
+}
+Solent_2012 <- getSolent(df_2012) # use our function to get just Solent LAs
+nrow(Solent_2012)
+ggplot(Solent_2012, aes(x= 100 * prop_65m, 
+                   y= pcFuelPoor, 
+                   colour = la_name)) + # use colour for each LA
+  geom_point() +
+  geom_smooth() + # adds a smoothed best fit line
+  theme(legend.position = "None") + # otherwise we get the colour legend at the side
+  labs(x = "% aged > 65, 2011 Census",
+       y = "% households in fuel poverty, 2012") +
+  facet_wrap(. ~ la_name) # draws a separate plot for each LA (in a different colour)
+message("Correlation coeficient across al LSOAs (2012)")
+cor(Solent_2012$prop_65m, Solent_2012$pcFuelPoor)
   
 ```
+##2019 Fuel Poverty & Census 2011 data
+```{r Plotting the 2019 fuel poverty vs 2011 percent over 65s}
+#census_age$"LSOA11CD" <- census_age$"geography code"
+Census_age_2019fp <- merge(lsoa_fuelpov_2019, census_age, by = "LSOA11CD")
+names(Census_age_2019fp)
+# select the variables we want for clarity
+df_2019 <- dplyr::select(Census_age_2019fp, LSOA11CD, "LA Name", "Proportion of households fuel poor (%)", "Proportion Over 65", prop_65m)
+head(df_2019)
+# table(df$`LA Name`)
+df_2019$la_name <- df_2019$`LA Name` # make a new variable with an easier name
+df_2019$pcFuelPoor <- df_2019$`Proportion of households fuel poor (%)` # same - this is actually a % not a proportion!
+# select the places we want here
+Solent_2019 <- getSolent(df_2019) # use our function to get just Solent LAs
+nrow(Solent_2019)
+ggplot(Solent_2019, aes(x= 100 * prop_65m, 
+                   y= pcFuelPoor, 
+                   colour = la_name)) + # use colour for each LA
+  geom_point() +
+  geom_smooth() + # adds a smoothed best fit line
+  theme(legend.position = "None") + # otherwise we get the colour legend at the side
+  labs(x = "% aged > 65, 2011 Census",
+       y = "% households in fuel poverty, 2019") +
+  facet_wrap(. ~ la_name) # draws a separate plot for each LA (in a different colour)
+message("Correlation coeficient across al LSOAs (2019)")
+cor(Solent_2019$prop_65m, Solent_2019$pcFuelPoor)
+```
 
+####Plotting Fuel Poverty Against Deprevation
+```{r plotting Change in Fuel Pov against dep}
+LSOAfuelpovdep <- merge(lsoa_fuelpov20122018, LSOAdep, by= "LSOA11CD")
+names(LSOAfuelpovdep)
+df <- dplyr::select(LSOAfuelpovdep, LSOA11CD, "LA Name.x", fp_diff, IMDScore, fp2012, IMD_Decile, fp2018
+)
 
+head(df)
+Solent <- dplyr::filter(df, `LA Name.x` == "Basingstoke and Deane"|
+                           `LA Name.x` == "East Hampshire"|
+                           `LA Name.x` == "Eastleigh"|
+                           `LA Name.x` == "Fareham"|
+                           `LA Name.x` == "Gosport"|
+                           `LA Name.x` == "Hart"|
+                           `LA Name.x` == "Havant"|
+                           `LA Name.x` == "New Forest"|
+                           `LA Name.x` == "Portsmouth"|
+                           `LA Name.x` == "Rushmoor"|
+                           `LA Name.x` == "Southampton"|
+                           `LA Name.x` == "Test Valley"|
+                           `LA Name.x` == "Winchester"|
+                           `LA Name.x` == "Isle of Wight"
+                           )
+head(Solent)
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =100*(fp_diff/fp2012), 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "% Change in Fuel Poverty")
+```
+Try adding facets for each Local Authority
+
+```{r addFacetsToFuelpovdep}
+# or without colour but using facets for Local Authorities
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =100*(fp_diff/fp2012), 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "% change Fuel Poverty") +
+  facet_wrap(`LA Name.x` ~ .)
+
+nrow(Solent)
+```
 
 
 
