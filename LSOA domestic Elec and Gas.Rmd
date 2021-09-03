@@ -25,16 +25,20 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE) # set this to FALSE if you don't want the code in the final output
 
-# useful R libraries
-library(ggplot2)
-library(readr)
+# useful R libraries ----
 library(dplyr)
+library(ggplot2)
+library(leaflet)
+library(readr)
 
-# GIS libraries
+# GIS libraries ----
 library(raster)
 library(sf)
-library(spData)
-library(spDataLarge)
+#library(spData) # not needed
+#library(spDataLarge)
+
+# local functions ----
+source(here::here("R", "functions.R"))
 
 dataFolder<-"/Users/megha/Desktop/1. Uni/Masters/Project/Mapping Code/data/" # default for Meghan
 user <- Sys.info()[[7]] # who are we logged in as?
@@ -47,54 +51,107 @@ message("User: ", user)
 message("dataFolder: ", dataFolder)
 ```
 
+# Background data
 
-# Mapping the Lower Layer Super Output Area (LSOA)
-## Mapping Domestic
-### Mapping Electricity consumption
-####2019
-```{r Loading in the LSOA electricty consumption data}
-#Electricty consumption data LSOA pre downloaded
-inFile <-paste0(dataFolder, "energy/electricity/LSOA Dom Elec csv/LSOA_ELEC_2019.csv")
-lsoa_elecData <- readr::read_csv(inFile)
-lsoa_elecData$LSOA11CD <- lsoa_elecData$`Lower Layer Super Output Area (LSOA) Code`
-head(lsoa_elecData)
-```
+Load & check boundary data for Solent area. The table shows which LAs we expect to plot.
 
 ```{r Loading in boundary data for the LSOA}
 #The LSOA boundaries for the Solent have been pre-downloaded
 inf<-paste0(dataFolder, "boundaries/LSOA/lsoa_solent.shp")
 message ("Loading LSOA boundaries from file")
-lsoa_sf_data <- sf::read_sf(inf)
-head(lsoa_sf_data)
-table(lsoa_sf_data$LAD11NM)#How many LSOAs are there in each LA
+lsoa_sf <- sf::read_sf(inf)
+head(lsoa_sf)
+table(lsoa_sf$LAD11NM) # How many LSOAs are there in each LA?
 ```
 
-```{r Mapping the electricty consumption of the LSOAs}
-lsoa_merged_sf <- merge(lsoa_sf_data, lsoa_elecData) #merging the boundaries and energy data
-ggplot2::ggplot(lsoa_merged_sf) + 
-  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
-  scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
-  labs(caption = "Solent (all LSOAs)")
-#Mapping it
-```
-####Map with Overlay
-```{r Check leaflet for dom electricity consumption}
-library(leaflet)
-
-st_coord_sys <- st_crs(lsoa_merged_sf)
+```{r transform boundary data for use in leaflet}
+st_coord_sys <- st_crs(lsoa_sf)
 st_coord_sys$epsg
 
 #Trasforming the coord systen
 if(st_coord_sys$epsg !=4326){
-map_df_trans <- st_transform(lsoa_merged_sf, "+proj=longlat +datum=WGS84")
+  lsoa_sf_leaflet <- st_transform(lsoa_sf, "+proj=longlat +datum=WGS84")
 }
 ```
-```{r Plotting leaflet dom electricity consumption map}
-qpal <- colorNumeric("Reds", map_df_trans$`Mean domestic electricity consumption \n(kWh per meter)`, n=9)
 
-leaflet(map_df_trans) %>%
+Loading deprivation data and double checking what the IMD Decile means - NB this is all LSOAs not just Solent
+
+```{r Loading in the Deprivation score data}
+inFile<-paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv")
+LSOAdep<-readr::read_csv(inFile)
+LSOAdep$'LSOA11CD' <- LSOAdep$'lsoa11cd'
+head(LSOAdep)
+#names(LSOAdep)
+
+ggplot(LSOAdep, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y = IMDScore, 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "IMD Score",
+       caption = "All LSOAs")
+
+LSOAdep$la_name <- LSOAdep$LADnm
+solent_dep <- getSolent(LSOAdep)
+ggplot(solent_dep, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y = IMDScore, 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  facet_wrap(. ~ la_name)
+  labs(x = "IMD Decile",
+       y = "IMD Score",
+       caption = "Solent LSOAs split by Local Authority")
+```
+
+> NB: IMD Decile 10 has _LOWER_ mean IMD score (less deprived)! Which is what it says in the Excel workbook...
+
+> So remember: IMD Decile 1 = 10% _most_ deprived; IMD Decile 10 = 10% _least_ deprived
+
+# Domestic Electricity consumption
+
+## 2019
+
+Load LSOA elec data - NB this is all LSOAs not just Solent
+
+```{r Loading in the LSOA electricty consumption data}
+#Electricty consumption data LSOA pre downloaded
+inFile <-paste0(dataFolder, "energy/electricity/LSOA Dom Elec csv/LSOA_ELEC_2019.csv")
+domelec_LSOA_2019 <- readr::read_csv(inFile)
+domelec_LSOA_2019$LSOA11CD <- domelec_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
+head(domelec_LSOA_2019)
+domelec_LSOA_2019$mean_de2019 <- domelec_LSOA_2019$`Mean domestic electricity consumption 
+(kWh per meter)`
+```
+
+### Base map
+
+```{r Mapping the electricty consumption of the LSOAs}
+# just add the variables we want
+df <- dplyr::select(domelec_LSOA_2019, LSOA11CD, mean_de2019)
+
+lsoa_merged_sf <- merge(lsoa_sf, df) #merging the LSOA boundaries and energy data
+ggplot2::ggplot(lsoa_merged_sf) + 
+  geom_sf(aes(fill = mean_de2019)) +
+  scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
+  labs(caption = "Electricity (2019, all Solent LSOAs)")
+#Mapping it
+```
+
+### Map with Overlay (leaflet)
+
+```{r Plotting leaflet dom electricity consumption map}
+# make a new df for use in the map (prevents confusion)
+map_df <- merge(lsoa_sf_leaflet, df, by = "LSOA11CD")
+
+qpal <- colorNumeric("Reds", df$mean_de2019, n=9)
+
+leaflet(map_df) %>%
 addTiles() %>%  # Add default OpenStreetMap map tiles
-  addPolygons(color = ~qpal(`Mean domestic electricity consumption \n(kWh per meter)`),
+  addPolygons(color = ~qpal(mean_de2019),
               fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD), 
              
   
@@ -106,188 +163,131 @@ addTiles() %>%  # Add default OpenStreetMap map tiles
 
 
 ```
-##### Looking at cities in more detail        
+### Looking at cities in more detail 
+
 ```{r Southampton LSOA dom Elec}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Southampton")
 # plotting the electricity consumption of Southampton in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
+  geom_sf(aes(fill = mean_de2019)) +
   scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Southampton")
 ```
+
 ```{r Portsmouth LSOA dom Elec}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Portsmouth")
 # plotting the electricity consumption of Portsmouth in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
+  geom_sf(aes(fill = mean_de2019)) +
   scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 ```
+
 ```{r Winchester LSOA dom Elec}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf, LAD11NM == "Winchester")
 
 # plotting the electricity consumption of Winchester in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `Mean domestic electricity consumption \n(kWh per meter)`)) +
+  geom_sf(aes(fill = mean_de2019)) +
   scale_fill_continuous(name = "Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
-####Difference between 2010 and 2019 dom elec
+
+### Plotting the relationship between Electricty consumption and deprivation
+
+To see if higher electricity use is associated with higher deprivation
+
+```{r plotting electricty consumption against deprevation}
+domelec_LSOA_2019$la_name <-domelec_LSOA_2019$`Local Authority Name`
+
+solent_elec <- getSolent(domelec_LSOA_2019)
+
+df <- merge(solent_dep, solent_elec, by = "LSOA11CD")
+
+ggplot(df, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y = mean_de2019, 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "Electricity use (mean kWh per meter)",
+       caption = "Solent LSOAs, 2019")
+```
+
+With facets by LA
+
+```{r addFacetsToElecconsumption}
+# or without colour but using facets for Local Authorities
+ggplot(df, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =mean_de2019, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "Electricity use (mean kWh per meter)",
+       caption = "Solent LSOAs, 2019") +
+  facet_wrap(la_name.x ~ .)
+
+```
+
+
+### Difference between 2010 and 2019 dom elec
+
 ```{r Creating the difference in LSOA mean dom elec consumption variable}
 domelec_LSOA_2010 <- readr::read_csv(paste0(dataFolder,"energy/electricity/LSOA Dom Elec csv/LSOA_ELEC_2010.csv"))
-domelec_LSOA_2019 <- readr::read_csv(paste0(dataFolder, "energy/electricity/LSOA Dom Elec csv/LSOA_ELEC_2019.csv"))
-domelec_LSOA_2010$de2010 <- domelec_LSOA_2010$'Mean domestic electricity consumption \n(kWh per meter)'
-domelec_LSOA_2019$de2019 <- domelec_LSOA_2019$'Mean domestic electricity consumption \n(kWh per meter)'
+domelec_LSOA_2010$mean_de2010 <- domelec_LSOA_2010$'Mean domestic electricity consumption \n(kWh per meter)'
+
 # create unambiguous lsoa code for matching to each other and the sf geometry
 domelec_LSOA_2010$LSOA11CD <- domelec_LSOA_2010$`Lower Layer Super Output Area (LSOA) Code`
-domelec_LSOA_2019$LSOA11CD <- domelec_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
-  
-merged_de <- merge(domelec_LSOA_2010, domelec_LSOA_2019, by="Lower Layer Super Output Area (LSOA) Code", all=TRUE)
-names(merged_de)
-merged_de$de_diff<-as.numeric(merged_de$de2019)-as.numeric(merged_de$de2010) 
-summary(merged_de)
+# just the vars we want
+df <- dplyr::select(domelec_LSOA_2010, LSOA11CD, mean_de2010)
+# reuse the 2019 data we already analysed
+merged_de <- merge(df, domelec_LSOA_2019, by="LSOA11CD", all=TRUE)
+#names(merged_de)
+
+merged_de$mean_de_diff <- as.numeric(merged_de$mean_de2019)-as.numeric(merged_de$mean_de2010) 
+merged_de$mean_de_diff_pc <- 100*(merged_de$mean_de_diff/merged_de$mean_de2010)
+summary(merged_de$mean_de_diff)
+summary(merged_de$mean_de_diff_pc)
 ```
+
+#### Basic map
 
 ```{r Mapping the LSOA difference in mean dom elec consumption}
 # merge to sf geometry on LSOA11CD
-merged_de$LSOA11CD <- merged_de$"Lower Layer Super Output Area (LSOA) Code"
-lsoa_sf_de20102019<-merge(lsoa_sf_data, merged_de)
+lsoa_sf_de20102019<-merge(lsoa_sf, merged_de, by = "LSOA11CD")
 ggplot2::ggplot(lsoa_sf_de20102019) +
-  geom_sf(aes(fill=de_diff))+
+  geom_sf(aes(fill=mean_de_diff))+
   scale_fill_continuous(name="Change in Mean consumpton (kWh per meter)",low="green",high="red") +
-  labs(caption="Solent(all LSOAs)")
+  labs(caption="Solent (all LSOAs)")
 
-
-
-
-lsoa_sf_de20102019$pc_diff <- 100*(lsoa_sf_de20102019$de_diff/lsoa_sf_de20102019$de2010)
 t_diff <-  dplyr::select(as.data.frame(lsoa_sf_de20102019), 
-                         LSOA11CD, `Lower Layer Super Output Area (LSOA) Name.y`,
-                         de2010, de2019, de_diff, pc_diff)
-head(arrange(t_diff, pc_diff))
-head(arrange(t_diff, -pc_diff))
-ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
+                         LSOA11CD,
+                         mean_de2010, mean_de2019, mean_de_diff, mean_de_diff_pc)
+head(arrange(t_diff, mean_de_diff_pc))
+head(arrange(t_diff, -mean_de_diff_pc))
+ggplot2::ggplot(t_diff, aes(x = mean_de_diff_pc)) +
   geom_histogram()
 ```
-#### Plotting the change in dom elec consumption against the deprivation score
 
-Loading deprivation data and double checking what the IMD Decile means
-
-```{r Loading in the Deprivation score data}
-inFile<-paste0(dataFolder, "Indices of Multiple Deprivation/Indices_of_Multiple_Deprivation_(IMD)_2019.csv")
-LSOAdep<-readr::read_csv(inFile)
-LSOAdep$'LSOA11CD' <- LSOAdep$'lsoa11cd'
-head(LSOAdep)
-names(LSOAdep)
-
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
-                   y = IMDScore, 
-                   group = IMD_Decile,
-                   colour = IMD_Decile)) +  
-  geom_boxplot() +
-  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
-  labs(x = "IMD Decile",
-       y = "IMD Score")
-```
-
-NB: IMD Decile 10 has _LOWER_ mean IMD score! Which is what it says in the Excel workbok...
+#### Change map with Overlay (leaflet)
 
 
-```{r plotting change in elec usage against dep}
-LSOAdepelec <- merge(merged_de, LSOAdep, by= "LSOA11CD")
-names(LSOAdepelec)
-df <- dplyr::select(LSOAdepelec, LSOA11CD, "Local Authority Name.x", "de_diff", IMDScore, de2010, IMD_Decile, de2019
-)
-
-head(df)
-Solent <- dplyr::filter(df, `Local Authority Name.x` == "Basingstoke and Deane"|
-                           `Local Authority Name.x` == "East Hampshire"|
-                           `Local Authority Name.x` == "Eastleigh"|
-                           `Local Authority Name.x` == "Fareham"|
-                           `Local Authority Name.x` == "Gosport"|
-                           `Local Authority Name.x` == "Hart"|
-                           `Local Authority Name.x` == "Havant"|
-                           `Local Authority Name.x` == "New Forest"|
-                           `Local Authority Name.x` == "Portsmouth"|
-                           `Local Authority Name.x` == "Rushmoor"|
-                           `Local Authority Name.x` == "Southampton"|
-                           `Local Authority Name.x` == "Test Valley"|
-                           `Local Authority Name.x` == "Winchester"|
-                           `Local Authority Name.x` == "Isle of Wight"
-                           )
-head(Solent)
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
-                   y =100*(de_diff/de2010), 
-                   group = IMD_Decile,
-                   colour = IMD_Decile)) +  
-  geom_boxplot() +
-  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
-  labs(x = "IMD Decile",
-       y = "% change Electricity")
-```
-
-Try adding facets for each Local Authority
-
-```{r addFacetsToElecDiff}
-# or without colour but using facets for Local Authorities
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
-                   y =100*(de_diff/de2010), 
-                   group = IMD_Decile)) +
-  geom_boxplot() +
-  labs(x = "IMD Decile",
-       y = "% change Electricty") +
-  facet_wrap(`Local Authority Name.x` ~ .)
-
-nrow(Solent)
-```
-####Plotting the relationship between Electricty consumption and deprevation
-```{r plotting electricty consumption against deprevation}
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
-                   y =de2019, 
-                   group = IMD_Decile,
-                   colour = IMD_Decile)) +  
-  geom_boxplot() +
-  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
-  labs(x = "IMD Decile",
-       y = "Electricity Consumption")
-```
-```{r addFacetsToElecconsumption}
-# or without colour but using facets for Local Authorities
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
-                   y =de2019, 
-                   group = IMD_Decile)) +
-  geom_boxplot() +
-  labs(x = "IMD Decile",
-       y = "Electricty Consumption") +
-  facet_wrap(`Local Authority Name.x` ~ .)
-
-nrow(Solent)
-```
-
-
-
-####Map with Overlay 
-```{r Check leaflet for Change in dom elec consumption}
-library(leaflet)
-
-st_coord_sys <- st_crs(lsoa_sf_de20102019)
-st_coord_sys$epsg
-
-#Transforming the coord system
-if(st_coord_sys$epsg !=4326) {
-  map_df_trans <- st_transform(lsoa_sf_de20102019, "+proj=longlat +datum=WGS84")
-}
-
-```
 ```{r Plotting leaflet for change in dom elec consumption map}
-qpal <- colorNumeric("Reds", map_df_trans$de_diff, n=9)
+# merge just the variables we want to the leaflet sf
+df <- dplyr::select(merged_de, LSOA11CD, mean_de2010, mean_de2019, mean_de_diff, mean_de_diff_pc)
+lsoa_sf_leaflet <- merge(lsoa_sf_leaflet, df) # add on to the 
+#names(lsoa_sf_leaflet)
 
-leaflet(map_df_trans) %>% 
+qpal <- colorNumeric("Reds", lsoa_sf_leaflet$mean_de_diff, n=9)
+
+# we already checked & transformed the boundaries for leaflet so re-use
+leaflet(lsoa_sf_leaflet) %>% 
   addTiles() %>%  # Add default OpenStreetMap map tiles
-  addPolygons(color = ~qpal(de_diff),
+  addPolygons(color = ~qpal(mean_de_diff),
               fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD ), 
              
   
@@ -299,13 +299,14 @@ leaflet(map_df_trans) %>%
 
 ```
 
-#####Cities in more detail
+#### Cities in more detail
+
 ```{r Southampton LSOA difference in dom Elec}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_sf_de20102019, LAD11NM == "Southampton")
 # plotting the electricity consumption of Southampton in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill= de_diff)) +
+  geom_sf(aes(fill= mean_de_diff)) +
   scale_fill_continuous(name = "Change in Mean consumpton (kWh per meter)", low = "green", high = "red") +
   labs(caption = "Southampton")
 #BROKEN
@@ -315,7 +316,7 @@ ggplot2::ggplot(mapData) +
 mapData <- dplyr::filter(lsoa_sf_de20102019, LAD11NM == "Portsmouth")
 # plotting the electricity consumption of Portsmouth in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = de_diff)) +
+  geom_sf(aes(fill = mean_de_diff)) +
   scale_fill_continuous(name = "Change in Mean comsumpton (kWh per meter)", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 ```
@@ -324,49 +325,91 @@ ggplot2::ggplot(mapData) +
 mapData <- dplyr::filter(lsoa_sf_de20102019, LAD11NM == "Winchester")
 # plotting the electricity consumption of Winchester in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = de_diff)) +
+  geom_sf(aes(fill = mean_de_diff)) +
   scale_fill_continuous(name = "Change in Mean comsumpton (kWh per meter)", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
 
-### Mapping Gas
-####2019
+
+#### Plotting the change in dom elec consumption against the deprivation score
+
+
+
+
+```{r plotting change in elec usage against dep}
+df <- dplyr::select(merged_de, LSOA11CD, mean_de_diff, mean_de2010, mean_de2019, mean_de_diff_pc)
+LSOAdepelec <- merge(df, LSOAdep, by= "LSOA11CD")
+#names(LSOAdepelec)
+
+Solent <- getSolent(LSOAdepelec)
+head(Solent)
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y = mean_de_diff_pc, 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "% change in mean kWh per meter",
+       caption = "Electricity 2010-2019, all Solent LSOAs")
+```
+
+Try adding facets for each Local Authority
+
+```{r addFacetsToElecDiff}
+# or without colour but using facets for Local Authorities
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =mean_de_diff_pc, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "% change in mean kWh per meter",
+       caption = "Electricity 2010-2019, all Solent LSOAs") +
+  facet_wrap(la_name ~ .)
+
+nrow(Solent)
+```
+
+
+# Mapping Gas
+
+## 2019
+
 ```{r Loading in the LSOA gas consumption data}
 #Electricty consumption data LSOA pre downloaded
 inFile <-paste0(dataFolder, "energy/gas/LSOA Gas csv/LSOA_GAS_2019.csv")
-lsoa_gasData <- readr::read_csv(inFile)
-lsoa_gasData$LSOA11CD <- lsoa_gasData$`Lower Layer Super Output Area (LSOA) Code`
-head(lsoa_gasData)
+domgas_LSOA_2019 <- readr::read_csv(inFile)
+domgas_LSOA_2019$LSOA11CD <- domgas_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
+
+domgas_LSOA_2019$mean_dg2019 <- domgas_LSOA_2019$`Mean consumption (kWh per meter)`
+
+head(domgas_LSOA_2019)
 ```
 
+
+### Basic map
+
 ```{r Mapping the gas consumption of the LSOAs}
-lsoa_merged_sf_gas <- merge(lsoa_sf_data, lsoa_gasData) #merging the boundaries and energy data
+df <- dplyr::select(domgas_LSOA_2019, LSOA11CD, mean_dg2019)
+lsoa_merged_sf_gas <- merge(lsoa_sf, df) #merging the boundaries and energy data
 ggplot2::ggplot(lsoa_merged_sf_gas) + 
-  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  geom_sf(aes(fill = mean_dg2019)) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Solent (all LSOAs)")
 #Mapping it
 ```
 > Aha - this one shows where there is no gas :-)
 
-###Map with Overlay
-```{r Check leaflet for dom gas consumption}
-library(leaflet)
+### Map with Overlay
 
-st_coord_sys <- st_crs(lsoa_merged_sf_gas)
-st_coord_sys$epsg 
-
-#Transforming the coord system
-if(st_coord_sys$epsg !=4326){
-  map_df_trans <- st_transform(lsoa_merged_sf_gas, "+proj=longlat +datum=WGS84")
-}
-```
 ```{r Plotting leaflet dom gas consumption}
-qpal <- colorNumeric("Reds", map_df_trans$`Mean consumption (kWh per meter)`, n=9)
+# re-use the df from previous chunk
+lsoa_sf_leaflet <- merge(lsoa_sf_leaflet, df, by = "LSOA11CD")
+qpal <- colorNumeric("Reds", lsoa_sf_leaflet$mean_dg2019, n=9)
 
-leaflet(map_df_trans) %>%
+leaflet(lsoa_sf_leaflet) %>%
   addTiles() %>%
-  addPolygons(color= ~qpal(`Mean consumption (kWh per meter)`), 
+  addPolygons(color= ~qpal(mean_dg2019), 
               fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD),
               
               highlight=highlightOptions(
@@ -379,14 +422,15 @@ leaflet(map_df_trans) %>%
 ```
 
 
-#####Cities in More detail
+### Cities in More detail
+
 ```{r Southampton LSOA Gas}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Southampton")
 
 # plotting the gas consumption of Southampton in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  geom_sf(aes(fill = mean_dg2019)) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Southampton")
 ```
@@ -396,47 +440,131 @@ mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Portsmouth")
 
 # plotting the gas consumption of Portsmouth in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  geom_sf(aes(fill = mean_dg2019)) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Portsmouth")
 ```
+
 ```{r Winchester LSOA Gas}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_merged_sf_gas, LAD11NM == "Winchester")
 
 # plotting the gas consumption of Winchester in more detail
 ggplot2::ggplot(mapData) + 
-  geom_sf(aes(fill = `Mean consumption (kWh per meter)`)) +
+  geom_sf(aes(fill = mean_dg2019)) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
-####Difference between 2010 and 2019 dom gas 
-```{r Creating the dfference in LSOA dom gas consumption variable}
-#Green indicates a decrease in gas consumption from 2010 to 2019
-#Red indicates an increase in gas consumption from 2010 to 2019
-dgas_LSOA_2010 <- readr::read_csv(paste0(dataFolder, "energy/gas/LSOA Gas csv/LSOA_GAS_2010.csv"))
-dgas_LSOA_2019 <- readr::read_csv(paste0(dataFolder, "energy/gas/LSOA Gas csv/LSOA_GAS_2019.csv"))
 
-dgas_LSOA_2010$dgas2010 <- dgas_LSOA_2010$'Mean consumption (kWh per meter)'
-dgas_LSOA_2019$dgas2019 <- dgas_LSOA_2019$'Mean consumption (kWh per meter)'
-merged_dgas <- merge(dgas_LSOA_2010, dgas_LSOA_2019, by = "Lower Layer Super Output Area (LSOA) Code", all = TRUE)
-names(merged_dgas)
-merged_dgas$dg_diff<-as.numeric(merged_dgas$dgas2019) - merged_dgas$dgas2010
+### Plotting  gas usage against deprivation
+
+```{r Boxplot of the gas consumption and deprevation}
+domgas_LSOA_2019$la_name <-domgas_LSOA_2019$`Local Authority Name`
+
+solent_gas <- getSolent(domgas_LSOA_2019)
+
+df <- merge(solent_dep, solent_gas, by = "LSOA11CD")
+
+ggplot(df, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y = mean_dg2019, 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "Gas Consumption")
+
+```
+
+Much more of a correlation with low deprivation (higher deciles)
+
+```{r addFacetsTogasconsumption}
+# or without colour but using facets for Local Authorities
+ggplot(df, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =mean_dg2019, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "Gas Consumption") +
+  facet_wrap(la_name.y ~ .)
+
+nrow(Solent)
+```
+
+### Difference between 2010 and 2019 dom gas 
+
+```{r Creating the dfference in LSOA dom gas consumption variable}
+
+domgas_LSOA_2010 <- readr::read_csv(paste0(dataFolder, "energy/gas/LSOA Gas csv/LSOA_GAS_2010.csv"))
+domgas_LSOA_2010$mean_dg2010 <- domgas_LSOA_2010$'Mean consumption (kWh per meter)'
+domgas_LSOA_2010$LSOA11CD <- domgas_LSOA_2010$`Lower Layer Super Output Area (LSOA) Code`
+
+df <- dplyr::select(domgas_LSOA_2010, LSOA11CD, mean_dg2010) # just the vars we need
+
+merged_dgas <- merge(domgas_LSOA_2019, df, by = "LSOA11CD", all = TRUE)
+
+#names(merged_dgas)
+merged_dgas$dg_diff<-as.numeric(merged_dgas$mean_dg2019) - merged_dgas$mean_dg2010
 summary(merged_dgas)
 ```
 
+#### Plotting the change in gas usage against the deprivation 
+
+```{r plotting change in gas usage against dep}
+LSOAdepgas <- merge(merged_dgas, LSOAdep, by= "LSOA11CD")
+#names(LSOAdepgas)
+df <- dplyr::select(LSOAdepgas, LSOA11CD, la_name.x, mean_dg2019, IMDScore, mean_dg2010, IMD_Decile,dg_diff
+)
+
+head(df)
+df$la_name <- df$la_name.x
+Solent <- getSolent(df)
+head(Solent)
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =100*(dg_diff/mean_dg2010), 
+                   group = IMD_Decile,
+                   colour = IMD_Decile)) +  
+  geom_boxplot() +
+  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
+  labs(x = "IMD Decile",
+       y = "% change",
+       caption = "Mean gas kWh 2010-2019, all Solent LSOas")
+```
+
+Try adding facets for each Local Authority and remove the outlier
+
+```{r addFacetsTogasDiff}
+# or without colour but using facets for Local Authorities
+Solentex <- filter(Solent,100*(dg_diff/mean_dg2010)<50)
+ggplot(Solentex, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =100*(dg_diff/mean_dg2010), 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "% change",
+       caption = "Mean gas kWh 2010-2019, all Solent LSOas") +
+  facet_wrap(la_name ~ .)
+
+nrow(Solent)
+```
+
+#### Basic change map
+
 ```{r Mapping the change in LSOA dom mean gas comsumption}
-merged_dgas$LSOA11CD <- merged_dgas$"Lower Layer Super Output Area (LSOA) Code" #creating a variable with the LSOA code in the same name as in sf_data
-lsoa_dgas20102019 <- merge(lsoa_sf_data, merged_dgas) #merging these
+#Green indicates a decrease in gas consumption from 2010 to 2019
+#Red indicates an increase in gas consumption from 2010 to 2019
+
+df <- dplyr::select(merged_dgas, LSOA11CD, mean_dg2010, mean_dg2019, dg_diff)
+lsoa_dgas20102019 <- merge(lsoa_sf, df, by = "LSOA11CD") #merging these
 ggplot2::ggplot(lsoa_dgas20102019) + geom_sf(aes(fill=dg_diff))+ 
                   scale_fill_continuous(name="Change in Gas: Mean kWh per meter", low="green",high="red")+
   labs(caption ="Solent (all MSOAs)") ##BROKEN
 ##Need to change the varibale names to reflect what is actually there
 
-lsoa_dgas20102019$pc_diff <- 100*(lsoa_dgas20102019$dg_diff/lsoa_dgas20102019$dgas2010)
+lsoa_dgas20102019$pc_diff <- 100*(lsoa_dgas20102019$dg_diff/lsoa_dgas20102019$mean_dg2010)
 t_diff <-  dplyr::select(as.data.frame(lsoa_dgas20102019), 
-                         LSOA11CD, `Lower Layer Super Output Area (LSOA) Code`,
-                         dgas2010, dgas2019, dg_diff, pc_diff)
+                         LSOA11CD, LSOA11NM,
+                         mean_dg2010, mean_dg2019, dg_diff, pc_diff)
 head(arrange(t_diff, pc_diff))
 head(arrange(t_diff, -pc_diff))
 ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
@@ -446,96 +574,18 @@ ggplot2::ggplot(t_diff, aes(x = pc_diff)) +
 
 
 ```
-####Plotting the change in gas usage against the deprevation 
-```{r plotting change in gas usage against dep}
-LSOAdepgas <- merge(merged_dgas, LSOAdep, by= "LSOA11CD")
-names(LSOAdepgas)
-df <- dplyr::select(LSOAdepgas, LSOA11CD, "Local Authority Name.x", dg_diff, IMDScore, dgas2010, IMD_Decile, dgas2019
-)
 
-head(df)
-Solent <- dplyr::filter(df, `Local Authority Name.x` == "Basingstoke and Deane"|
-                           `Local Authority Name.x` == "East Hampshire"|
-                           `Local Authority Name.x` == "Eastleigh"|
-                           `Local Authority Name.x` == "Fareham"|
-                           `Local Authority Name.x` == "Gosport"|
-                           `Local Authority Name.x` == "Hart"|
-                           `Local Authority Name.x` == "Havant"|
-                           `Local Authority Name.x` == "New Forest"|
-                           `Local Authority Name.x` == "Portsmouth"|
-                           `Local Authority Name.x` == "Rushmoor"|
-                           `Local Authority Name.x` == "Southampton"|
-                           `Local Authority Name.x` == "Test Valley"|
-                           `Local Authority Name.x` == "Winchester"|
-                           `Local Authority Name.x` == "Isle of Wight"
-                           )
-head(Solent)
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
-                   y =100*(dg_diff/dgas2010), 
-                   group = IMD_Decile,
-                   colour = IMD_Decile)) +  
-  geom_boxplot() +
-  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
-  labs(x = "IMD Decile",
-       y = "% change Gas")
-```
+#### Change map with overlay 
 
-Try adding facets for each Local Authority
+Using leaflet
 
-```{r addFacetsTogasDiff}
-# or without colour but using facets for Local Authorities
-Solentex <- filter(Solent,100*(dg_diff/dgas2010)<50)
-ggplot(Solentex, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
-                   y =100*(dg_diff/dgas2010), 
-                   group = IMD_Decile)) +
-  geom_boxplot() +
-  labs(x = "IMD Decile",
-       y = "% change") +
-  facet_wrap(`Local Authority Name.x` ~ .)
-
-nrow(Solent)
-```
-#####Plotting the gas usage against deprevation
-```{r Boxplot of the gas consumption and deprevation}
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
-                   y =dgas2019, 
-                   group = IMD_Decile,
-                   colour = IMD_Decile)) +  
-  geom_boxplot() +
-  scale_color_continuous(name = "IMD Decile") + # rename the legend scale
-  labs(x = "IMD Decile",
-       y = "Gas Consumption")
-
-```
-```{r addFacetsTogasconsumption}
-# or without colour but using facets for Local Authorities
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
-                   y =dgas2019, 
-                   group = IMD_Decile)) +
-  geom_boxplot() +
-  labs(x = "IMD Decile",
-       y = "Gas Consumption") +
-  facet_wrap(`Local Authority Name.x` ~ .)
-
-nrow(Solent)
-```
-####Map with overlay 
-```{r Check leaflet for change in dom gas consumption}
-library(leaflet)
-
-st_coord_sys <- st_crs(lsoa_dgas20102019)
-st_coord_sys$epsg
-
-#Transforming the coor system
-if(st_coord_sys$epsg !=4326){
-  map_df_trans <- st_transform(lsoa_dgas20102019, "+proj=longlat +datum=WGS84")
-}
-
-```
 ```{r Plotting leaflet for change in dom gas consumption map}
-qpal <- colorNumeric("Reds", map_df_trans$dg_diff, n=9)
 
-leaflet(map_df_trans) %>%
+lsoa_sf_leaflet <- merge(lsoa_sf_leaflet, t_diff, by = "LSOA11CD")
+
+qpal <- colorNumeric("Reds", lsoa_sf_leaflet$dg_diff, n=9)
+
+leaflet(lsoa_sf_leaflet) %>%
   addTiles() %>%
   addPolygons(color = ~qpal(dg_diff),
               fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD), 
@@ -548,7 +598,9 @@ leaflet(map_df_trans) %>%
                 bringToFront = TRUE))
 
 ```
-#####Cities in more detail
+
+#### Cities in more detail
+
 ```{r Southampton change in LSOA Gas}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_dgas20102019, LAD11NM == "Southampton")
@@ -557,7 +609,7 @@ mapData <- dplyr::filter(lsoa_dgas20102019, LAD11NM == "Southampton")
 ggplot2::ggplot(mapData) + 
   geom_sf(aes(fill = dg_diff)) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
-  labs(caption = "Southampton")
+  labs(caption = "2010-2019, Southampton LSOAs")
 ```
 ```{r Portsmouth Change in LSOA Gas}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
@@ -567,8 +619,9 @@ mapData <- dplyr::filter(lsoa_dgas20102019, LAD11NM == "Portsmouth")
 ggplot2::ggplot(mapData) + 
   geom_sf(aes(fill = dg_diff)) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
-  labs(caption = "Portsmouth")
+  labs(caption = "2010-2019, Portsmouth LSOAs")
 ```
+
 ```{r Winchester Chnage in LSOA Gas}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_dgas20102019, LAD11NM == "Winchester")
@@ -577,6 +630,6 @@ mapData <- dplyr::filter(lsoa_dgas20102019, LAD11NM == "Winchester")
 ggplot2::ggplot(mapData) + 
   geom_sf(aes(fill = dg_diff)) +
   scale_fill_continuous(name = "Gas: Mean kWh per meter", low = "green", high = "red") +
-  labs(caption = "Winchester")
+  labs(caption = "2010-2019, Winchester LSOAs")
 ```
 
