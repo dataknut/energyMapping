@@ -288,13 +288,13 @@ qpal <- colorNumeric("Reds", lsoa_sf_leaflet$mean_de_diff, n=9)
 leaflet(lsoa_sf_leaflet) %>% 
   addTiles() %>%  # Add default OpenStreetMap map tiles
   addPolygons(color = ~qpal(mean_de_diff),
-              fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD ), 
+              fillOpacity = 0.6, weight = 1.6, popup = ~(LSOA11CD ), 
              
   
                highlight = highlightOptions(
-                weight = 5,
+                weight = 6,
                 color = "#666",
-                fillOpacity = 0.7,
+                fillOpacity = 0.8,
                 bringToFront = TRUE))
 
 ```
