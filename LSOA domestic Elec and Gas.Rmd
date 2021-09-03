@@ -226,7 +226,7 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
   geom_boxplot() +
   scale_color_continuous(name = "IMD Decile") + # rename the legend scale
   labs(x = "IMD Decile",
-       y = "% change")
+       y = "% change Electricity")
 ```
 
 Try adding facets for each Local Authority
@@ -238,7 +238,7 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
                    group = IMD_Decile)) +
   geom_boxplot() +
   labs(x = "IMD Decile",
-       y = "% change") +
+       y = "% change Electricty") +
   facet_wrap(`Local Authority Name.x` ~ .)
 
 nrow(Solent)
@@ -451,14 +451,15 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
   geom_boxplot() +
   scale_color_continuous(name = "IMD Decile") + # rename the legend scale
   labs(x = "IMD Decile",
-       y = "% change")
+       y = "% change Gas")
 ```
 
 Try adding facets for each Local Authority
 
 ```{r addFacetsToElecDiff}
 # or without colour but using facets for Local Authorities
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+Solentex <- filter(Solent,100*(dg_diff/dgas2010)<50)
+ggplot(Solentex, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
                    y =100*(dg_diff/dgas2010), 
                    group = IMD_Decile)) +
   geom_boxplot() +
