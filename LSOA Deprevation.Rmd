@@ -85,9 +85,38 @@ ggplot2::ggplot(lsoa_multidep_merged_sf)+
   scale_fill_continuous(name="IMD Score", low="green", high="red")+
   labs(caption="Solent (all LSOAs)")
 ```
+####Map with overlay 
+```{r Check leaflet for change i dom gas consumption}
+library(leaflet)
 
-#####Looking at the cities in more detail
+st_coord_sys <- st_crs(lsoa_multidep_merged_sf)
+st_coord_sys$epsg
+
+#Transforming the coor system
+if(st_coord_sys$epsg !=4326){
+  map_df_trans <- st_transform(lsoa_multidep_merged_sf, "+proj=longlat +datum=WGS84")
+}
+
+```
+```{r Plotting leaflet for change in dom gas consumption map}
+qpal <- colorNumeric("Reds", map_df_trans$IMDScore, n=9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%
+  addPolygons(color = ~qpal(IMDScore),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD), 
+             
+  
+               highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+
+```
 ```{r Southampton LSOA Indices of dep}
+#####Looking at the cities in more detail
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_multidep_merged_sf, LAD11NM == "Southampton")
 
@@ -152,6 +181,37 @@ head(arrange(t_diff, -pc_diff))
 ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
   geom_histogram()
 ```
+####Map with overlay 
+```{r Check leaflet for change i dom gas consumption}
+library(leaflet)
+
+st_coord_sys <- st_crs(lsoa_imd20152019)
+st_coord_sys$epsg
+
+#Transforming the coor system
+if(st_coord_sys$epsg !=4326){
+  map_df_trans <- st_transform(lsoa_imd20152019, "+proj=longlat +datum=WGS84")
+}
+
+```
+```{r Plotting leaflet for change in dom gas consumption map}
+qpal <- colorNumeric("Reds", map_df_trans$imd_diff, n=9)
+
+leaflet(map_df_trans) %>%
+  addTiles() %>%
+  addPolygons(color = ~qpal(imd_diff),
+              fillOpacity = 0.6, weight = 1.5, popup = ~(LSOA11CD), 
+             
+  
+               highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+
+```
+
 #####Looking at the cities in more detail
 ```{r Southampton LSOA IMD}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
@@ -161,6 +221,13 @@ ggplot2::ggplot(mapData) +
   geom_sf(aes(fill = imd_diff)) +
   scale_fill_continuous(name = "Change in IMD score", low = "green", high = "red") +
   labs(caption = "Southampton")
+#Histogram
+mapData$imd_diff <-100* (mapData$imd_diff/mapData$imd2015)
+t_diff <-dplyr::select(as.data.frame(lsoa_imd20152019),LSOA11CD, lsoa11cd, imd2015, imd2019, imd_diff, pc_diff)
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
+  geom_histogram()
 ```
 ```{r Portsmouth LSOA IMD}
 #Cities such as Portsmouth disappear due to their density, we will now map Portsmouth alone to see this area in more detail
@@ -170,6 +237,13 @@ ggplot2::ggplot(mapData) +
   geom_sf(aes(fill = `imd_diff`)) +
   scale_fill_continuous(name = "Change in IMD score", low = "green", high = "red") +
   labs(caption = "Portsmouth")
+#Histogram
+mapData$imd_diff <-100* (mapData$imd_diff/mapData$imd2015)
+t_diff <-dplyr::select(as.data.frame(lsoa_imd20152019),LSOA11CD, lsoa11cd, imd2015, imd2019, imd_diff, pc_diff)
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
+  geom_histogram()
 ```
 ```{r Winchester LSOA Gas}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
@@ -179,7 +253,15 @@ ggplot2::ggplot(mapData) +
   geom_sf(aes(fill = `imd_diff`)) +
   scale_fill_continuous(name = "Change in IMD score", low = "green", high = "red") +
   labs(caption = "Winchester")
+#Histogram
+mapData$imd_diff <-100* (mapData$imd_diff/mapData$imd2015)
+t_diff <-dplyr::select(as.data.frame(lsoa_imd20152019),LSOA11CD, lsoa11cd, imd2015, imd2019, imd_diff, pc_diff)
+head(arrange(t_diff, pc_diff))
+head(arrange(t_diff, -pc_diff))
+ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
+  geom_histogram()
 ```
+####Plotting the relationship between deprevation and Fuel Poverty
 
 
 
