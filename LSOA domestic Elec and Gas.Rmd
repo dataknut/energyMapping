@@ -404,7 +404,11 @@ ggplot(solent_elec, aes(x = as.factor(IMD_Decile), # forces a box plot at each v
        y = "Change in mean domestic kWh per meter",
        caption = "Electricity 2010-2019, all Solent LSOAs") +
   facet_wrap(la_name ~ .)
+```
 
+Figure \@ref(fig:freeScaleElecIMD)
+
+```{r freeScaleElecIMD, fig.cap = "freeScaleElecIMD"}
 # now with 'free' scales
 ggplot(solent_elec, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
                    y =mean_de_diff, 
@@ -413,7 +417,7 @@ ggplot(solent_elec, aes(x = as.factor(IMD_Decile), # forces a box plot at each v
   labs(x = "IMD Decile",
        y = "Change in mean domestic kWh per meter",
        caption = "Electricity 2010-2019, all Solent LSOAs") +
-  facet_wrap(la_name ~ . , scales = "free")
+  facet_wrap(la_name ~ . , scales = "free_y")
 
 nrow(solent_elec)
 ```
@@ -634,7 +638,11 @@ ggplot(solent_gas, aes(x = as.factor(IMD_Decile), # forces a box plot at each va
        y = "Change in mean domestic kWh per meter",
        caption = "Gas 2010-2019, all Solent LSOAs") +
   facet_wrap(la_name ~ .)
+```
 
+Figure \@ref(fig:freeScaleGasIMD)
+
+```{r freeScaleGasIMD, fig.cap = "freeScaleGasIMD"}
 # now with 'free' scales to see pattern in each LA
 ggplot(solent_gas, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
                    y =dg_diff, 
@@ -643,7 +651,7 @@ ggplot(solent_gas, aes(x = as.factor(IMD_Decile), # forces a box plot at each va
   labs(x = "IMD Decile",
        y = "Change in mean domestic kWh per meter",
        caption = "Gas 2010-2019, all Solent LSOAs") +
-  facet_wrap(la_name ~ ., scales = "free")
+  facet_wrap(la_name ~ ., scales = "free_y")
 
 nrow(solent_gas)
 ```
