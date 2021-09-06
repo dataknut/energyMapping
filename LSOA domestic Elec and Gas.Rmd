@@ -341,9 +341,9 @@ df <- dplyr::select(merged_de, LSOA11CD, mean_de_diff, mean_de2010, mean_de2019,
 LSOAdepelec <- merge(df, LSOAdep, by= "LSOA11CD")
 #names(LSOAdepelec)
 
-Solent <- getSolent(LSOAdepelec)
-head(Solent)
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+solent_elec <- getSolent(LSOAdepelec)
+head(solent_elec)
+ggplot(solent_elec, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
                    y = mean_de_diff_pc, 
                    group = IMD_Decile,
                    colour = IMD_Decile)) +  
@@ -358,7 +358,7 @@ Try adding facets for each Local Authority
 
 ```{r addFacetsToElecDiff}
 # or without colour but using facets for Local Authorities
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+ggplot(solent_elec, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
                    y =mean_de_diff_pc, 
                    group = IMD_Decile)) +
   geom_boxplot() +
@@ -367,17 +367,18 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
        caption = "Electricity 2010-2019, all Solent LSOAs") +
   facet_wrap(la_name ~ .)
 
-nrow(Solent)
+nrow(solent_elec)
 ```
 Plot kWh change as a contrast to % change (which seems constant-ish across IMD)
 
-```{r plotkWhchange}
+```{r plotEleckWhchange}
 # as a contrast to % change
 
-ggplot(Solent, aes(x = mean_de2010, # forces a box plot at each value 
+ggplot(solent_elec, aes(x = mean_de2010, # forces a box plot at each value 
                    y =mean_de_diff,
                    colour = la_name)) +
   geom_point() +
+  theme(legend.position="none") +
   geom_smooth() +
   labs(x = "Domestic mean kWh 2010",
        y = "Change in mean domestic kWh per meter",
@@ -385,7 +386,7 @@ ggplot(Solent, aes(x = mean_de2010, # forces a box plot at each value
   facet_wrap(la_name ~ .)
 
 
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+ggplot(solent_elec, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
                    y =mean_de_diff, 
                    group = IMD_Decile)) +
   geom_boxplot() +
@@ -394,7 +395,8 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
        caption = "Electricity 2010-2019, all Solent LSOAs") 
 
 # or without colour but using facets for Local Authorities
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+# first with fixed scales
+ggplot(solent_elec, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
                    y =mean_de_diff, 
                    group = IMD_Decile)) +
   geom_boxplot() +
@@ -403,7 +405,17 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
        caption = "Electricity 2010-2019, all Solent LSOAs") +
   facet_wrap(la_name ~ .)
 
-nrow(Solent)
+# now with 'free' scales
+ggplot(solent_elec, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =mean_de_diff, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "Change in mean domestic kWh per meter",
+       caption = "Electricity 2010-2019, all Solent LSOAs") +
+  facet_wrap(la_name ~ . , scales = "free")
+
+nrow(solent_elec)
 ```
 So there is a slightly downward trend - those in lower deprivation deciles are reducing slightly more.
 
@@ -524,7 +536,6 @@ ggplot(df, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
        y = "Gas Consumption") +
   facet_wrap(la_name.y ~ .)
 
-nrow(Solent)
 ```
 
 ### Difference between 2010 and 2019 dom gas 
@@ -549,14 +560,15 @@ summary(merged_dgas)
 ```{r plotting change in gas usage against dep}
 LSOAdepgas <- merge(merged_dgas, LSOAdep, by= "LSOA11CD")
 #names(LSOAdepgas)
-df <- dplyr::select(LSOAdepgas, LSOA11CD, la_name.x, mean_dg2019, IMDScore, mean_dg2010, IMD_Decile,dg_diff
+LSOAdepgas$MSOA_name <- LSOAdepgas$`MSOA Name`
+df <- dplyr::select(LSOAdepgas, la_name.x,MSOA_name, LSOA11CD,  IMD_Decile, mean_dg2019, IMDScore, mean_dg2010,mean_dg2019, dg_diff 
 )
 
 head(df)
 df$la_name <- df$la_name.x
-Solent <- getSolent(df)
-head(Solent)
-ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+solent_gas <- getSolent(df)
+head(solent_gas)
+ggplot(solent_gas, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
                    y =100*(dg_diff/mean_dg2010), 
                    group = IMD_Decile,
                    colour = IMD_Decile)) +  
@@ -567,21 +579,73 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
        caption = "Mean gas kWh 2010-2019, all Solent LSOas")
 ```
 
-Try adding facets for each Local Authority and remove the outlier
+Try adding facets for each Local Authority and remove the outlier where % change > 50
 
 ```{r addFacetsTogasDiff}
+message("Dropping:")
+filter(solent_gas,100*(dg_diff/mean_dg2010)>50)
+
 # or without colour but using facets for Local Authorities
-Solentex <- filter(Solent,100*(dg_diff/mean_dg2010)<50)
-ggplot(Solentex, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+solent_gasex <- filter(solent_gas,100*(dg_diff/mean_dg2010)<50)
+ggplot(solent_gasex, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
                    y =100*(dg_diff/mean_dg2010), 
                    group = IMD_Decile)) +
   geom_boxplot() +
   labs(x = "IMD Decile",
        y = "% change",
-       caption = "Mean gas kWh 2010-2019, all Solent LSOas") +
+       caption = "Mean gas kWh 2010-2019, all Solent LSOAs with outlier removed") +
   facet_wrap(la_name ~ .)
 
-nrow(Solent)
+nrow(solent_gasex)
+```
+
+As for electricity, plot the mean kWh difference. Keep the outlier.
+
+```{r plotGaskWhchange}
+# as a contrast to % change
+
+ggplot(solent_gas, aes(x = mean_dg2010, # forces a box plot at each value 
+                   y =dg_diff,
+                   colour = la_name)) +
+  geom_point() +
+  theme(legend.position="none") +
+  geom_smooth() +
+  labs(x = "Domestic mean kWh 2010",
+       y = "Change in mean domestic kWh per meter",
+       caption = "Gas 2010-2019, all Solent LSOAs") +
+  facet_wrap(la_name ~ .)
+
+
+ggplot(solent_gas, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =dg_diff, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "Change in mean domestic kWh per meter",
+       caption = "Gas 2010-2019, all Solent LSOAs") 
+
+# or without colour but using facets for Local Authorities
+# first with fixed scales
+ggplot(solent_gas, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =dg_diff, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "Change in mean domestic kWh per meter",
+       caption = "Gas 2010-2019, all Solent LSOAs") +
+  facet_wrap(la_name ~ .)
+
+# now with 'free' scales to see pattern in each LA
+ggplot(solent_gas, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =dg_diff, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "Change in mean domestic kWh per meter",
+       caption = "Gas 2010-2019, all Solent LSOAs") +
+  facet_wrap(la_name ~ ., scales = "free")
+
+nrow(solent_gas)
 ```
 
 #### Basic change map
@@ -658,7 +722,7 @@ ggplot2::ggplot(mapData) +
   labs(caption = "2010-2019, Portsmouth LSOAs")
 ```
 
-```{r Winchester Chnage in LSOA Gas}
+```{r Winchester change in LSOA Gas}
 #Cities such as Winchester disappear due to their density, we will now map Winchester alone to see this area in more detail
 mapData <- dplyr::filter(lsoa_dgas20102019, LAD11NM == "Winchester")
 
