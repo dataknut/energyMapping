@@ -369,7 +369,43 @@ ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
 
 nrow(Solent)
 ```
+Plot kWh change as a contrast to % change (which seems constant-ish across IMD)
 
+```{r plotkWhchange}
+# as a contrast to % change
+
+ggplot(Solent, aes(x = mean_de2010, # forces a box plot at each value 
+                   y =mean_de_diff,
+                   colour = la_name)) +
+  geom_point() +
+  geom_smooth() +
+  labs(x = "Domestic mean kWh 2010",
+       y = "Change in mean domestic kWh per meter",
+       caption = "Electricity 2010-2019, all Solent LSOAs") +
+  facet_wrap(la_name ~ .)
+
+
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =mean_de_diff, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "Change in mean domestic kWh per meter",
+       caption = "Electricity 2010-2019, all Solent LSOAs") 
+
+# or without colour but using facets for Local Authorities
+ggplot(Solent, aes(x = as.factor(IMD_Decile), # forces a box plot at each value 
+                   y =mean_de_diff, 
+                   group = IMD_Decile)) +
+  geom_boxplot() +
+  labs(x = "IMD Decile",
+       y = "Change in mean domestic kWh per meter",
+       caption = "Electricity 2010-2019, all Solent LSOAs") +
+  facet_wrap(la_name ~ .)
+
+nrow(Solent)
+```
+So there is a slightly downward trend - those in lower deprivation deciles are reducing slightly more.
 
 # Mapping Gas
 
