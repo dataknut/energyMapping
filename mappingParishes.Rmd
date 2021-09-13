@@ -111,12 +111,12 @@ parish_sf_data <- sf::read_sf(inf)
 names(parish_sf_data)
 ```
 
-Build a simple map just to check (Figure \@ref(fig:simpleParishMap).
+Build a simple map just to check the size of the parish (Figure \@ref(fig:simpleParishMap).
 
 ```{r simpleParishMap, fig.cap = "LSOA check map (shows MSOA and ward names when clicked"}
 
 st_coord_sys <- sf::st_crs(parish_sf_data) # check coord system
-st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
+#st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
 
 # transform the coord system if required
 if(st_coord_sys$epsg != 4326){
@@ -140,7 +140,7 @@ leaflet(fram) %>%
 ```
 
 
-Build a simple map from LSOAs based on the Framlingham electoral ward just to check (Figure \@ref(fig:simpleLSOAMap).
+Npw build a simple map from LSOAs based on the Framlingham electoral ward to see how well it matches the parish (Figure \@ref(fig:simpleLSOAMap).
 
 ```{r loadLSOAShapefile}
 inf<-paste0(dataFolder, "/UK_census2011/Lower_Layer_Super_Output_Areas_(December_2011)_Boundaries_Generalised_Clipped_(BGC)_EW_V3-shp/Lower_Layer_Super_Output_Areas_(December_2011)_Boundaries_Generalised_Clipped_(BGC)_EW_V3.shp")
@@ -159,7 +159,7 @@ names(fram_lsoa_sf_data)
 ```{r simpleLSOAMap, fig.cap = "LSOA check map (shows MSOA and ward names when clicked"}
 
 st_coord_sys <- sf::st_crs(fram_lsoa_sf_data) # check coord system
-st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
+#st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
 
 # transform the coord system if required
 if(st_coord_sys$epsg != 4326){
@@ -187,7 +187,7 @@ This map suggests that two LSOAs:
 
 Are a close match to the Framlingham civil parish shown in the first map. This will enable us to extract residential gas & electricity use.
 
-Commercial gas & electricity use is at MSOA level. This may exceed the parish boundaries - find E02006288 (see above) and map it.
+Commercial gas & electricity use is at MSOA level. This may exceed the parish boundaries - find E02006288 (see above) and map it - Figure \@ref(fig:simpleMSOAMap).
 
 ```{r loadMSOAShapefile}
 
@@ -204,7 +204,7 @@ names(fram_msoa_sf_data)
 ```{r simpleMSOAMap, fig.cap = "MSOA check map (shows MSOA and ward names when clicked"}
 
 st_coord_sys <- sf::st_crs(fram_msoa_sf_data) # check coord system
-st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
+#st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
 
 # transform the coord system if required
 if(st_coord_sys$epsg != 4326){
@@ -223,9 +223,9 @@ leaflet(fram_msoa_sf_trans) %>%
 
 ```
 
-Yep, way too big.
+Yep, way too big. In fact this looks much like the [Framlingham electoral ward](https://www.suffolk.gov.uk/assets/council-and-democracy/how-the-council-works/SCC-Electoral-Division-Ward-Parish-map.pdf)...
 
-This means we can only get residential electricity & gas at LSOA level and aggregate, all other data is at MSOA or LA level. See CREDS carbon.place for LSOA emissions estimates or CSE's impact tool for parish/LA emissions - both of these use the LSOA data for 2018/19 as part of their inputs.
+This means we can only get residential electricity & gas at LSOA level and aggregate, all other data is at MSOA or LA level. See CREDS [carbon.place](https://www.carbon.place/) for LSOA emissions estimates or CSE's impact tool for parish/LA emissions - both of these use the LSOA data for 2018/19 as part of their inputs.
 
 # Energy use
 
