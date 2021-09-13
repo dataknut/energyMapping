@@ -1,0 +1,457 @@
+---
+title: "Mapping parishe emissions: Framlingham as an example"
+author: "Ben Anderson"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2: 
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    fig_width: 5
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE) # set this to FALSE if you don't want the code in the final output
+
+# Libraries ----
+# useful R libraries
+library(ggplot2)
+library(dplyr)
+library(data.table)
+
+# GIS libraries
+library(leaflet)
+library(raster)
+library(sf)
+
+# Paramaters ----
+
+dataFolder<-"/Users/megha/Desktop/1. Uni/Masters/Project/Mapping Code/data/" # default for Meghan
+user <- Sys.info()[[7]] # who are we logged in as?
+if(user == "ben"){
+  dataFolder <- path.expand("~/Dropbox/data/")
+}
+
+# this will not print anything out when knitted due to the include=FALSE setting in the chunk header
+message("User: ", user)
+message("dataFolder: ", dataFolder)
+
+# Functions ----
+
+selectSoton <- function(dt){
+  # function we can re-use
+  # assumes a data.table
+  # assumes LA name = la_name (may need to make new var first)
+  # returns just the rows that have Local Authority == Southampton
+  select_dt <- dt[la_name %like% "Southampton"]
+  return(select_dt)
+}
+
+selectSolent <- function(dt){
+  # function we can re-use
+  # assumes a data.table
+  # assumes LA name = la_name (may need to make new var first)
+  # returns just the rows that have Local Authority in Solent area
+  select_dt <- dt[la_name == "Southampton" | 
+                   la_name == "Portsmouth" |
+                   la_name == "Winchester" |
+                   la_name == "Eastleigh" |
+                   la_name == "Isle of Wight" |
+                   la_name == "Fareham" |
+                   la_name == "Gosport" |
+                   la_name == "Test Valley" |
+                   la_name == "East Hampshire" |
+                   la_name == "Havant" |
+                   la_name == "New Forest" |
+                   la_name == "Hart" |
+                   la_name == "Basingstoke and Deane"]
+  return(select_dt)
+}
+
+selectParish <- function(dt, parish = parish){
+   # as above but selects a parish based on name
+  select_dt <- dt[parncp19nm == get(parish)]
+}
+
+# Data ----
+f <- "lookups/Lower_Layer_Super_Output_Area_(2011)_to_Ward_(2020)_to_LAD_(2020)_Lookup_in_England_and_Wales_V2.csv.gz"
+#lsoa_lut <- data.table::fread(paste0(dataFolder, f))
+lsoa_lookup <- data.table::fread(paste0(dataFolder, "lookups/lsoa_lookup.csv.gz")) # reduced version
+
+parish_lookup <- data.table::fread(paste0(dataFolder, "lookups/Parish_to_Ward_to_Local_Authority_District__December_2020__Lookup_in_England_and_Wales.csv.gz"))
+
+# 
+```
+
+# Intro
+
+Focus on Framlingham (for now, intended to be gneric)
+
+# Mapping parishes
+
+Example: Framlingham
+
+```{r loadParishShapefile}
+#The LSOA boundaries for the Solent have been pre-downloaded
+inf<-paste0(dataFolder, "EW_parishes/Parishes_and_Non_Civil_Parished_Areas_(April_2019)_EW_BGC/Parishes_and_Non_Civil_Parished_Areas_(April_2019)_EW_BGC.shp")
+message ("Loading parish boundaries from file")
+parish_sf_data <- sf::read_sf(inf)
+names(parish_sf_data)
+```
+
+Build a simple map just to check (Figure \@ref(fig:simpleParishMap).
+
+```{r simpleParishMap, fig.cap = "LSOA check map (shows MSOA and ward names when clicked"}
+
+st_coord_sys <- sf::st_crs(parish_sf_data) # check coord system
+st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
+
+# transform the coord system if required
+if(st_coord_sys$epsg != 4326){
+ parish_sf_trans <- st_transform(parish_sf_data, "+proj=longlat +datum=WGS84")
+}
+
+
+fram <- dplyr::filter(parish_sf_trans, parncp19nm == "Framlingham")
+
+leaflet(fram) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(fillOpacity = 0.2, weight = 1.5, popup = ~(paste0("Name ", parncp19nm,
+                      "<br> LA: " ,lad19nm)
+                      ), # popups clicked
+              highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+```
+
+
+Build a simple map from LSOAs based on the Framlingham electoral ward just to check (Figure \@ref(fig:simpleLSOAMap).
+
+```{r loadLSOAShapefile}
+inf<-paste0(dataFolder, "/UK_census2011/Lower_Layer_Super_Output_Areas_(December_2011)_Boundaries_Generalised_Clipped_(BGC)_EW_V3-shp/Lower_Layer_Super_Output_Areas_(December_2011)_Boundaries_Generalised_Clipped_(BGC)_EW_V3.shp")
+message ("Loading LSOA boundaries from file")
+lsoa_sf_data <- sf::read_sf(inf)
+names(lsoa_sf_data)
+
+# merge the LSOA look-up table
+df <- merge(lsoa_sf_data, lsoa_lookup, by = "LSOA11CD")
+
+fram_lsoa_sf_data <- dplyr::filter(df, WD20NM %like% "Framlingham")
+
+names(fram_lsoa_sf_data)
+```
+
+```{r simpleLSOAMap, fig.cap = "LSOA check map (shows MSOA and ward names when clicked"}
+
+st_coord_sys <- sf::st_crs(fram_lsoa_sf_data) # check coord system
+st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
+
+# transform the coord system if required
+if(st_coord_sys$epsg != 4326){
+ fram_lsoa_sf_trans <- st_transform(fram_lsoa_sf_data, "+proj=longlat +datum=WGS84")
+}
+
+leaflet(fram_lsoa_sf_trans) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(fillOpacity = 0.2, weight = 1.5, popup = ~(paste0("LSOA Name ", LSOA11NM.x,
+                      "<br> LA: " ,LA11NM)
+                      ), # popups clicked
+              highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+dplyr::select(fram_lsoa_sf_data, "LSOA11CD","LSOA11NM.x", "MSOA11CD","MSOA11NM", "WD20NM", )
+```
+
+This map suggests that two LSOAs:
+
+ * E01030172 Suffolk Coastal 002B
+ * E01030173 Suffolk Coastal 002C
+
+Are a close match to the Framlingham civil parish shown in the first map. This will enable us to extract residential gas & electricity use.
+
+Commercial gas & electricity use is at MSOA level. This may exceed the parish boundaries - find E02006288 (see above) and map it.
+
+```{r loadMSOAShapefile}
+
+inf<-paste0(dataFolder, "/UK_census2011/Middle_Layer_Super_Output_Areas__December_2011__Boundaries-shp/Middle_Layer_Super_Output_Areas__December_2011__Boundaries.shp")
+message ("Loading MSOA boundaries from file")
+msoa_sf_data <- sf::read_sf(inf)
+names(msoa_sf_data)
+
+fram_msoa_sf_data <- dplyr::filter(msoa_sf_data, msoa11cd == "E02006288")
+
+names(fram_msoa_sf_data)
+```
+
+```{r simpleMSOAMap, fig.cap = "MSOA check map (shows MSOA and ward names when clicked"}
+
+st_coord_sys <- sf::st_crs(fram_msoa_sf_data) # check coord system
+st_coord_sys # current coord system EPSG: 4326 (is what leaflet wants - good)
+
+# transform the coord system if required
+if(st_coord_sys$epsg != 4326){
+ fram_msoa_sf_trans <- st_transform(fram_msoa_sf_data, "+proj=longlat +datum=WGS84")
+}
+
+leaflet(fram_msoa_sf_trans) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addPolygons(fillOpacity = 0.2, weight = 1.5, popup = ~(paste0("MSOA Name ", msoa11nm)), # popups clicked
+              highlight = highlightOptions(
+                weight = 5,
+                color = "#666",
+                fillOpacity = 0.7,
+                bringToFront = TRUE))
+
+
+```
+
+Yep, way too big.
+
+This means we can only get residential electricity & gas at LSOA level and aggregate, all other data is at MSOA or LA level. See CREDS carbon.place for LSOA emissions estimates or CSE's impact tool for parish/LA emissions - both of these use the LSOA data for 2018/19 as part of their inputs.
+
+# Energy use
+
+2010 & 2019 residential gas & electricity consumption data from:
+
+ * https://www.gov.uk/government/statistics/lower-and-middle-super-output-areas-gas-consumption
+ * https://www.gov.uk/government/statistics/lower-and-middle-super-output-areas-electricity-consumption
+
+Define Framlingham by selecting the following LSOAs:
+
+ * E01030172 Suffolk Coastal 002B
+ * E01030173 Suffolk Coastal 002C
+ 
+ 
+## Gas 2010
+
+Note the 'old' local authority label.
+
+```{r getResidentialGas2010}
+gas2010_dt <- data.table::fread(paste0(dataFolder, "beis/subnationalGas/lsoaDom/LSOA_GAS_2010.csv.gz"))
+gas2010_dt[, LSOA11CD := `Lower Layer Super Output Area (LSOA) Code`]
+gas2010_dt[, total_gas_kWh := `Consumption (kWh)`]
+setkey(gas2010_dt, LSOA11CD)
+setkey(lsoa_lookup, LSOA11CD)
+gas2010_dt <- gas2010_dt[lsoa_lookup]
+fram_gas2010_dt <- gas2010_dt[LSOA11CD == "E01030172" |
+                        LSOA11CD == "E01030173"]
+
+fram_gas2010_dt[, .(`LSOA Name`, LSOA11CD, WD20NM, `Number of meters`, total_gas_kWh)]
+
+message("Framlingham: Total number of gas meters = ", sum(fram_gas2010_dt$`Number of meters`))
+
+message("Total residential gas kWh = ", sum(fram_gas2010_dt$total_gas_kWh))
+```
+
+Using BEIS gas emissions factors for 2010 (https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2010) doesn't help - no gas value. Use 2015 -   0.18445 kg CO2e/kWh (it's roughly constant over time in any case)
+
+
+```{r residentialGasCO2e2010}
+fram_gas2010_dt[, T_co2e_gas := (total_gas_kWh * 0.18445)/1000]
+
+fram_gas2010_dt[, .(`LSOA Name`, LSOA11CD, WD20NM, `Number of meters`, total_gas_kWh, T_co2e_gas)]
+
+message("Total T CO2e from gas  = ", sum(fram_gas2010_dt$T_co2e_gas))
+```
+
+
+## Electricity 2010
+
+  BEIS CI: 0.48531 kg CO2e/kWh - very high due to use of goal.
+  
+```{r getResidentialElec2010}
+elec2010_dt <- data.table::fread(paste0(dataFolder, "beis/subnationalElec/lsoaDom/LSOA_ELEC_2010.csv.gz"))
+elec2010_dt[, LSOA11CD := `Lower Layer Super Output Area (LSOA) Code`]
+elec2010_dt[, total_elec_kWh := `Total domestic electricity consumption (kWh)`]
+setkey(elec2010_dt, LSOA11CD)
+setkey(lsoa_lookup, LSOA11CD)
+elec2010_dt <- elec2010_dt[lsoa_lookup]
+fram_elec2010_dt <- elec2010_dt[LSOA11CD == "E01030172" |
+                        LSOA11CD == "E01030173"]
+
+fram_elec2010_dt[, .(LSOA11NM, LSOA11CD, WD20NM, `Total number of domestic electricity meters`, total_elec_kWh)]
+
+message("Total number of elec meters = ", sum(fram_elec2010_dt$`Total number of domestic electricity meters`))
+
+message("Total residential elec kWh = ", sum(fram_elec2010_dt$total_elec_kWh))
+```
+The difference between number of gas and electricity meters more or less shows those off-gas - but there could be two electricity meters per house - e.g. anyone using Economy-7.
+
+```{r residentialElecCO2e2010}
+fram_elec2010_dt[, T_co2e_elec := (total_elec_kWh * 0.48531)/1000]
+
+fram_elec2010_dt[, .(LSOA11NM, LSOA11CD, WD20NM, `Total number of domestic electricity meters`, total_elec_kWh, T_co2e_elec)]
+
+s2010 <- sum(fram_elec2010_dt$T_co2e_elec)
+s2021 <- (sum(fram_elec2010_dt$total_elec_kWh) *   0.21233 )/1000
+
+message("Total T CO2e from electricity  = ", s2010)
+
+message("Total T CO2e from this much electricity in 2021 using the most recent grid CI factor would be = ", s2021)
+
+message("That's ", 100*round(s2021/s2010,2), " % lower.")
+```
+
+
+## Gas 2019 (latest data, pre-covid)
+
+```{r getResidentialGas2019}
+gas_dt <- data.table::fread(paste0(dataFolder, "beis/subnationalGas/lsoaDom/LSOA_GAS_2019.csv.gz"))
+gas_dt[, LSOA11CD := `Lower Layer Super Output Area (LSOA) Code`]
+gas_dt[, total_gas_kWh := `Consumption (kWh)`]
+setkey(gas_dt, LSOA11CD)
+setkey(lsoa_lookup, LSOA11CD)
+gas_dt <- gas_dt[lsoa_lookup]
+fram_gas2019_dt <- gas_dt[LSOA11CD == "E01030172" |
+                        LSOA11CD == "E01030173"]
+
+fram_gas2019_dt[, .(`LSOA Name`, LSOA11CD, WD20NM, `Number of consuming meters`, total_gas_kWh)]
+
+message("Total number of consuming gas meters 2019 = ", sum(fram_gas2019_dt$`Number of consuming meters`))
+
+message("Total residential gas kWh 2019 = ", sum(fram_gas2019_dt$total_gas_kWh))
+```
+
+Using BEIS gas emissions factors for 2019 (https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2019).  
+
+  0.18385 kg CO2e/kWh +   0.02391 (WTT)
+
+```{r residentialGasCO2e2019}
+fram_gas2019_dt[, T_co2e_gas := (total_gas_kWh * (0.18385 + 0.02391))/1000]
+
+fram_gas2019_dt[, .(`LSOA Name`, LSOA11CD, WD20NM, `Number of consuming meters`, total_gas_kWh, T_co2e_gas)]
+
+message("Total T CO2e from gas  = ", sum(fram_gas2019_dt$T_co2e_gas))
+
+```
+
+
+## Electricity 2019 (latest data, pre-covid)
+
+  BEIS CI:   0.2556   kg CO2e/kWh +   0.03565  + 0.02170 (WTT + T&D) 
+  
+```{r getResidentialElec2019}
+elec2019_dt <- data.table::fread(paste0(dataFolder, "beis/subnationalElec/lsoaDom/LSOA_ELEC_2019.csv.gz"))
+elec2019_dt[, LSOA11CD := `Lower Layer Super Output Area (LSOA) Code`]
+elec2019_dt[, total_elec_kWh := `Total domestic electricity consumption (kWh)`]
+setkey(elec2019_dt, LSOA11CD)
+setkey(lsoa_lookup, LSOA11CD)
+elec2019_dt <- elec2019_dt[lsoa_lookup]
+fram_elec2019_dt <- elec2019_dt[LSOA11CD == "E01030172" |
+                        LSOA11CD == "E01030173"]
+
+fram_elec2019_dt[, .(LSOA11NM, LSOA11CD, WD20NM, `Total number of domestic electricity meters`, total_elec_kWh)]
+
+message("Total number of elec meters = ", sum(fram_elec2019_dt$`Total number of domestic electricity meters`))
+
+message("Total residential elec kWh = ", sum(fram_elec2019_dt$total_elec_kWh))
+```
+The difference between number of gas and electricity meters more or less shows those off-gas - but there could be two electricity meters per house - e.g. anyone using Economy-7.
+
+```{r residentialElecCO2e2019}
+fram_elec2019_dt[, T_co2e_elec := (total_elec_kWh * (0.2556 + 0.03565 + 0.02170))/1000]
+
+fram_elec2019_dt[, .(LSOA11NM, LSOA11CD, WD20NM, `Total number of domestic electricity meters`, total_elec_kWh, T_co2e_elec)]
+
+message("Total T CO2e from electricity  = ", sum(fram_elec2019_dt$T_co2e_elec))
+
+
+```
+
+## 2010 - 2019 change
+
+### Gas 2010-2019
+
+```{r gasChange}
+
+# add to 2010
+fram_gas2010_dt[, year := 2010]
+fram_gas2019_dt[, year := 2019]
+
+fg_2010 <- fram_gas2010_dt[,.(LSOA11CD, LSOA11NM, WD20NM, total_gas_kWh, T_co2e_gas, nMeters = `Number of meters`, year)]
+fg_2019 <- fram_gas2019_dt[ ,.(LSOA11CD, LSOA11NM, WD20NM, total_gas_kWh, T_co2e_gas, nMeters = `Number of consuming meters`, year)]
+fram_gas_dt <- rbind(fg_2010, fg_2019)
+
+ggplot2::ggplot(fram_gas_dt, aes(x = year, y = total_gas_kWh/1000, colour = LSOA11NM)) +
+  geom_line() +
+  geom_point() +
+  labs(y = "Gas MWh")
+
+ggplot2::ggplot(fram_gas_dt, aes(x = year, y = T_co2e_gas, colour = LSOA11NM)) +
+  geom_line() +
+  geom_point()
+
+fram_gas_dt
+
+gas_diff = sum(fram_gas2019_dt$total_gas_kWh)-sum(fram_gas2010_dt$total_gas_kWh)
+pc_gas_diff <- 100*(gas_diff/sum(fram_gas2019_dt$total_gas_kWh))
+message("Change in total gas use = ", gas_diff/1000 , " MWh")
+message("% change in total gas use = ", round(pc_gas_diff,2), " %")
+
+gas_Tco2e_diff = sum(fram_gas2019_dt$T_co2e_gas)-sum(fram_gas2010_dt$T_co2e_gas)
+pc_gas_Tco2e_diff <- 100 * (gas_Tco2e_diff/sum(fram_gas2010_dt$T_co2e_gas))
+message("% change in T CO2e from gas use = ", round(pc_gas_Tco2e_diff,2), " %")
+```
+
+
+
+### Electricity 2010-2019
+
+```{r elecChange}
+
+# add to 2010
+fram_elec2010_dt[, year := 2010]
+fram_elec2019_dt[, year := 2019]
+
+fe_2010 <- fram_elec2010_dt[,.(LSOA11CD, LSOA11NM, WD20NM, total_elec_kWh, T_co2e_elec, nMeters = `Total number of domestic electricity meters`, year)]
+fe_2019 <- fram_elec2019_dt[ ,.(LSOA11CD, LSOA11NM, WD20NM, total_elec_kWh, T_co2e_elec, nMeters = `Total number of domestic electricity meters`, year)]
+fram_elec_dt <- rbind(fe_2010, fe_2019)
+
+ggplot2::ggplot(fram_elec_dt, aes(x = year, y = total_elec_kWh/1000, colour = LSOA11NM)) +
+  geom_line() +
+  geom_point() +
+  labs(y = "Electricity MWh")
+
+ggplot2::ggplot(fram_elec_dt, aes(x = year, y = T_co2e_elec, colour = LSOA11NM)) +
+  geom_line() +
+  geom_point()
+
+fram_elec_dt
+
+elec_diff = sum(fram_elec2019_dt$total_elec_kWh)-sum(fram_elec2010_dt$total_elec_kWh)
+pc_elec_diff <- 100*(elec_diff/sum(fram_elec2010_dt$total_elec_kWh))
+message("Change in total electricity use = ", elec_diff/1000 , " MWh")
+message("% change in total electricity use = ", round(pc_elec_diff,2), " %")
+
+elec_Tco2e_diff = sum(fram_elec2019_dt$T_co2e_elec)-sum(fram_elec2010_dt$T_co2e_elec)
+pc_elec_Tco2e_diff <- 100 * (elec_Tco2e_diff/sum(fram_elec2010_dt$T_co2e_elec))
+message("% change in T CO2e from electricity use = ", round(pc_elec_Tco2e_diff,2), " %")
+```
+
+
+
+
+# The end
+
+```{r environment}
+R.Version()
+
+```
