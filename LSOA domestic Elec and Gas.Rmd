@@ -596,7 +596,7 @@ ggplot(solent_gasex, aes(x = as.factor(IMD_Decile), # forces a box plot at each 
                    group = IMD_Decile)) +
   geom_boxplot() +
   labs(x = "IMD Decile",
-       y = "% change",
+       y = "% change in Gas consumption",
        caption = "Mean gas kWh 2010-2019, all Solent LSOAs with outlier removed") +
   facet_wrap(la_name ~ .)
 
