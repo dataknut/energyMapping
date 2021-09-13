@@ -140,7 +140,7 @@ leaflet(fram) %>%
 ```
 
 
-Npw build a simple map from LSOAs based on the Framlingham electoral ward to see how well it matches the parish (Figure \@ref(fig:simpleLSOAMap).
+Now build a simple map from LSOAs based on the Framlingham electoral ward to see how well it matches the parish (Figure \@ref(fig:simpleLSOAMap).
 
 ```{r loadLSOAShapefile}
 inf<-paste0(dataFolder, "/UK_census2011/Lower_Layer_Super_Output_Areas_(December_2011)_Boundaries_Generalised_Clipped_(BGC)_EW_V3-shp/Lower_Layer_Super_Output_Areas_(December_2011)_Boundaries_Generalised_Clipped_(BGC)_EW_V3.shp")
@@ -401,6 +401,10 @@ ggplot2::ggplot(fram_gas_dt, aes(x = year, y = T_co2e_gas, colour = LSOA11NM)) +
 
 fram_gas_dt
 
+gas_meters_diff = sum(fram_gas2019_dt$`Number of consuming meters`)-sum(fram_gas2010_dt$`Number of meters`)
+gas_meters_diff_pc <- 100*(gas_meters_diff/sum(fram_gas2010_dt$`Number of meters`))
+message("Change in number of meters = ", gas_meters_diff , " (", round(gas_meters_diff_pc)," %)")
+
 gas_diff = sum(fram_gas2019_dt$total_gas_kWh)-sum(fram_gas2010_dt$total_gas_kWh)
 pc_gas_diff <- 100*(gas_diff/sum(fram_gas2019_dt$total_gas_kWh))
 message("Change in total gas use = ", gas_diff/1000 , " MWh")
@@ -435,6 +439,10 @@ ggplot2::ggplot(fram_elec_dt, aes(x = year, y = T_co2e_elec, colour = LSOA11NM))
   geom_point()
 
 fram_elec_dt
+
+elec_meters_diff = sum(fram_elec2019_dt$`Total number of domestic electricity meters`)-sum(fram_elec2010_dt$`Total number of domestic electricity meters`)
+elec_meters_diff_pc <- 100*(elec_meters_diff/sum(fram_elec2010_dt$`Total number of domestic electricity meters`))
+message("Change in number of meters = ", elec_meters_diff , " (", round(elec_meters_diff_pc)," %) - should probably be about the same as number of gas meters until new builds with electricity only are more common")
 
 elec_diff = sum(fram_elec2019_dt$total_elec_kWh)-sum(fram_elec2010_dt$total_elec_kWh)
 pc_elec_diff <- 100*(elec_diff/sum(fram_elec2010_dt$total_elec_kWh))
