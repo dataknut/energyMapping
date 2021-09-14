@@ -169,6 +169,7 @@ if(st_coord_sys$epsg != 4326){
 leaflet(fram_lsoa_sf_trans) %>%
   addTiles() %>%  # Add default OpenStreetMap map tiles
   addPolygons(fillOpacity = 0.2, weight = 1.5, popup = ~(paste0("LSOA Name ", LSOA11NM.x,
+                      "<br> LSOA code:: " ,LSOA11CD,
                       "<br> LA: " ,LA11NM)
                       ), # popups clicked
               highlight = highlightOptions(
@@ -415,6 +416,74 @@ pc_gas_Tco2e_diff <- 100 * (gas_Tco2e_diff/sum(fram_gas2010_dt$T_co2e_gas))
 message("% change in T CO2e from gas use = ", round(pc_gas_Tco2e_diff,2), " %")
 ```
 
+```{r getAllGasFiles}
+# slightly more complex - need to load all files & select LSOAs
+getGasFiles <- function(files){
+  dt <- data.table::data.table()
+  for(f in files){
+    d <- data.table::fread(f)
+    message("Loading ", f)
+    names(d)
+    s <- strsplit(f, "_")
+    suffix <- strsplit(s[[1]][3], ".", fixed = TRUE)
+    year <- suffix[[1]][1]
+    d[, year := year]
+    # if these variable names vary by year have to set here
+    d[, total_gas_kWh := `Consumption (kWh)`]
+    
+    dt <- rbind(dt,d, fill=TRUE) # prevents breakage when new var name introduced in 2016
+  }
+  
+  return(dt)
+}
+
+files <- list.files(paste0(dataFolder, "beis/subnationalGas/lsoaDom"), 
+                    pattern = ".gz", full.names = TRUE)
+
+gas_allYears <- getGasFiles(files)
+
+gas_allYears[, total_nMeters := ifelse(is.na(`Number of meters`), # must be after 2014
+                                       `Number of consuming meters`, # so this is true
+                                       `Number of meters`)] # pre 2015
+
+gas_allYears[, .(nMeters = mean(`Number of meters`),
+             nConsumingMeters = mean(`Number of consuming meters`),
+             nAllMeters = mean(total_nMeters)), 
+             keyby = .(year)]
+
+names(gas_allYears)
+gas_allYears[, LSOA11CD := `Lower Layer Super Output Area (LSOA) Code`]
+
+
+```
+
+```{r plotGasOverTime}
+
+fram_gas_allYears <- gas_allYears[LSOA11CD == "E01030172" |
+                        LSOA11CD == "E01030173"]
+
+ggplot2::ggplot(fram_gas_allYears, aes(x = year, y = total_nMeters, 
+                                        group = LSOA11CD,
+                                        colour = LSOA11CD)) +
+  geom_line() +
+  geom_point() +
+  labs(y = "Total number of gas meters")
+
+ggplot2::ggplot(fram_gas_allYears, aes(x = year, y = total_gas_kWh/1000, 
+                                        group = LSOA11CD,
+                                        colour = LSOA11CD)) +
+  geom_line() +
+  geom_point() +
+  labs(y = "Total residential gas (MWh)")
+
+ggplot2::ggplot(fram_gas_allYears, aes(x = year, y = total_gas_kWh/total_nMeters, 
+                                        group = LSOA11CD,
+                                        colour = LSOA11CD)) +
+  geom_line() +
+  geom_point() +
+  labs(y = "Mean residential gas kWh per meter",
+       caption = "This is an indicator of increasing energy efficiency over time")
+```
 
 
 ### Electricity 2010-2019
@@ -454,7 +523,64 @@ pc_elec_Tco2e_diff <- 100 * (elec_Tco2e_diff/sum(fram_elec2010_dt$T_co2e_elec))
 message("% change in T CO2e from electricity use = ", round(pc_elec_Tco2e_diff,2), " %")
 ```
 
+```{r getAllElecFiles}
+# slightly more complex - need to load all files & select LSOAs
+getElecFiles <- function(files){
+  dt <- data.table::data.table()
+  for(f in files){
+    d <- data.table::fread(f)
+    message("Loading ", f)
+    names(d)
+    s <- strsplit(f, "_")
+    suffix <- strsplit(s[[1]][3], ".", fixed = TRUE)
+    year <- suffix[[1]][1]
+    d[, year := year]
+    # if these variable names vary by year have to set here
+    d[, total_elec_kWh := `Total domestic electricity consumption (kWh)`]
+    d[, total_nMeters := `Total number of domestic electricity meters`]
+    dt <- rbind(dt,d)
+  }
+  
+  return(dt)
+}
 
+files <- list.files(paste0(dataFolder, "beis/subnationalElec/lsoaDom"), 
+                    pattern = ".gz", full.names = TRUE)
+
+elec_allYears <- getElecFiles(files)
+names(elec_allYears)
+elec_allYears[, LSOA11CD := `Lower Layer Super Output Area (LSOA) Code`]
+elec_allYears[, LSOA11NM := `Lower Layer Super Output Area (LSOA) Name`]
+
+```
+
+```{r plotElecOverTime}
+
+fram_elec_allYears <- elec_allYears[LSOA11CD == "E01030172" |
+                        LSOA11CD == "E01030173"]
+
+ggplot2::ggplot(fram_elec_allYears, aes(x = year, y = total_nMeters, 
+                                        group = LSOA11CD,
+                                        colour = LSOA11CD)) +
+  geom_line() +
+  geom_point() +
+  labs(y = "Total number of electricity meters")
+
+ggplot2::ggplot(fram_elec_allYears, aes(x = year, y = total_elec_kWh/1000, 
+                                        group = LSOA11CD,
+                                        colour = LSOA11CD)) +
+  geom_line() +
+  geom_point() +
+  labs(y = "Total residential electricity (MWh)")
+
+ggplot2::ggplot(fram_elec_allYears, aes(x = year, y = total_elec_kWh/total_nMeters, 
+                                        group = LSOA11CD,
+                                        colour = LSOA11CD)) +
+  geom_line() +
+  geom_point() +
+  labs(y = "Mean residential kWh per meter",
+       caption = "This is an indicator of increasing energy efficiency over time")
+```
 
 
 # The end
