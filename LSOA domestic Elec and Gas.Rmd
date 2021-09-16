@@ -247,13 +247,6 @@ message("New prop_65m:")
 summary(census_age$prop_65m)
 ```
 ```{r Plotting elec consumption in the over 65s}
-#BROKEN
-#domelec_LSOA_2019$LSOA11CD <-domelec_LSOA_2019$`Local Authority Name`
-#census_age_2019elec <- merge(domelec_LSOA_2019, census_age, by= "LSOA11CD")
-#head(census_age_2019elec)
-#Select varibale we want
-#aggec_2019 <- dplyr::select(census_age_2019elec, LSOA11CD, "Local Authority Name", "Proportion Over 65", mean_de2019, prop_65m )
-#head(aggec_2019)
 domelec_LSOA_2019$LSOA11CD <- domelec_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
 Census_age_elec2019 <- merge(domelec_LSOA_2019, census_age, by = "LSOA11CD")
 # select the variables we want for clarity
@@ -292,7 +285,7 @@ ggplot(Solent_2019, aes(x= 100 * prop_65m,
   geom_smooth() + # adds a smoothed best fit line
   theme(legend.position = "None") + # otherwise we get the colour legend at the side
   labs(x = "% aged > 65, 2011 Census",
-       y = "Domestic Electricity COnsumption") +
+       y = "Mean Domestic Electricity Consumption (kWh per meter)") +
   facet_wrap(. ~ la_name) # draws a separate plot for each LA (in a different colour)
 message("Correlation coeficient across all LSOAs (2019)")
 cor(Solent_2019$prop_65m, Solent_2019$mean_de2019)
