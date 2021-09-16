@@ -592,15 +592,15 @@ message("New prop_65m:")
 summary(census_age$prop_65m)
 ```
 ```{r Plotting gas consumption in the over 65s}
-domelec_LSOA_2019$LSOA11CD <- domelec_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
-Census_age_elec2019 <- merge(domelec_LSOA_2019, census_age, by = "LSOA11CD")
+domgas_LSOA_2019$LSOA11CD <- domgas_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
+Census_age_gas2019 <- merge(domgas_LSOA_2019, census_age, by = "LSOA11CD")
 # select the variables we want for clarity
 
-de_age <- dplyr::select(Census_age_elec2019, LSOA11CD, "Local Authority Name",mean_de2019, "Proportion Over 65", prop_65m)
-head(de_age)
+dg_age <- dplyr::select(Census_age_gas2019, LSOA11CD, "Local Authority Name",mean_dg2019, "Proportion Over 65", prop_65m)
+head(dg_age)
 # table(df$`LA Name`)
 
-de_age$la_name <- de_age$`Local Authority Name` # make a new variable with an easier name
+dg_age$la_name <- dg_age$`Local Authority Name` # make a new variable with an easier name
 # select the places we want here
 getSolent <- function(df){
   # assumes we are filtering on la_name
@@ -621,19 +621,19 @@ getSolent <- function(df){
                            )
 return(res)
 }
-Solent_2019 <- getSolent(de_age) # use our function to get just Solent LAs
-nrow(Solent_2019)
-ggplot(Solent_2019, aes(x= 100 * prop_65m, 
-                   y= mean_de2019, 
+Solent_2019g <- getSolent(dg_age) # use our function to get just Solent LAs
+nrow(Solent_2019g)
+ggplot(Solent_2019g, aes(x= 100 * prop_65m, 
+                   y= mean_dg2019, 
                    colour = la_name)) + # use colour for each LA
   geom_point() +
   geom_smooth() + # adds a smoothed best fit line
   theme(legend.position = "None") + # otherwise we get the colour legend at the side
   labs(x = "% aged > 65, 2011 Census",
-       y = "Domestic Electricity COnsumption") +
+       y = " Mean Domestic Gas Consumption (kWh per meter)") +
   facet_wrap(. ~ la_name) # draws a separate plot for each LA (in a different colour)
 message("Correlation coeficient across all LSOAs (2019)")
-cor(Solent_2019$prop_65m, Solent_2019$mean_de2019)
+cor(Solent_2019g$prop_65m, Solent_2019g$mean_dg2019)
 ```
 
 
