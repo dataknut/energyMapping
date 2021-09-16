@@ -300,7 +300,30 @@ cor(Solent_2019$prop_65m, Solent_2019$mean_de2019)
 
 
 
+```{r ageOACAndElec}
+# uses data.table for data load & matching (could be done with readr & dplyr etc)
+library(data.table)
+# you'll need this data (on sharepoint)
+oacDT <- data.table::fread(paste0(dataFolder, "oac/lsoa-oac-data.csv"))
+oacDT$la_name <- oacDT$`LA Name`
+oacDT$LSOA11CD <- oacDT$`SOA Code`
 
+solent_oacDT <- getSolent(oacDT)
+Solent_2019DT <- data.table::as.data.table(Solent_2019)
+setkey(Solent_2019DT, LSOA11CD)
+setkey(solent_oacDT, LSOA11CD)
+
+dt <- Solent_2019DT[solent_oacDT]
+
+ggplot(dt, aes(x= 100 * prop_65m, 
+                   y= mean_de2019, 
+                   colour = la_name)) + # use colour for each LA
+  geom_point() +
+  #theme(legend.position = "None") + # otherwise we get the colour legend at the side
+  labs(x = "% aged > 65, 2011 Census",
+       y = "Domestic Electricity COnsumption") +
+  facet_wrap(. ~ `Supergroup Name`) # draws a separate plot for each LA (in a different colour)
+```
 
 
 
