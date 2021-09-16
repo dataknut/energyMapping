@@ -291,6 +291,10 @@ message("Correlation coeficient across all LSOAs (2019)")
 cor(Solent_2019$prop_65m, Solent_2019$mean_de2019)
 ```
 
+```{r basic plot for over 65s and electricity consumption for whole UK }
+ggplot(de_age, aes(x= 100 * prop_65m, 
+                   y= mean_de2019))+ geom_point()
+```
 
 
 
