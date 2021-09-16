@@ -254,8 +254,7 @@ summary(census_age$prop_65m)
 #Select varibale we want
 #aggec_2019 <- dplyr::select(census_age_2019elec, LSOA11CD, "Local Authority Name", "Proportion Over 65", mean_de2019, prop_65m )
 #head(aggec_2019)
-
-domelec_LSOA_2019$LSOA11CD <- domelec_LSOA_2019$`Lower Layer Super Output Area (LSOA) Name`
+domelec_LSOA_2019$LSOA11CD <- domelec_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
 Census_age_elec2019 <- merge(domelec_LSOA_2019, census_age, by = "LSOA11CD")
 # select the variables we want for clarity
 
@@ -296,7 +295,7 @@ ggplot(Solent_2019, aes(x= 100 * prop_65m,
        y = "Domestic Electricity COnsumption") +
   facet_wrap(. ~ la_name) # draws a separate plot for each LA (in a different colour)
 message("Correlation coeficient across all LSOAs (2019)")
-cor(Solent_2019$prop_65m, Solent_2012$mean_de2019)
+cor(Solent_2019$prop_65m, Solent_2019$mean_de2019)
 ```
 
 
@@ -592,18 +591,16 @@ summary(census_age$`Proportion Over 65`)
 message("New prop_65m:")
 summary(census_age$prop_65m)
 ```
-
-```{r Graphing over 65s against gas consumption}
-#census_age$"LSOA11CD" <- census_age$"geography code"
-domgas_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code` <- domgas_LSOA_2019$`LSOA Code`
-
-Census_age_2012fp <- merge(domgas_LSOA_2019, census_age, by = "Lower Layer Super Output Area (LSOA) Code")
+```{r Plotting gas consumption in the over 65s}
+domelec_LSOA_2019$LSOA11CD <- domelec_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
+Census_age_elec2019 <- merge(domelec_LSOA_2019, census_age, by = "LSOA11CD")
 # select the variables we want for clarity
-df_2012 <- dplyr::select(Census_age_2012fp, LSOA11CD, "LA Name", "Proportion of households fuel poor (%)", "Proportion Over 65", prop_65m)
-head(df_2012)
+
+de_age <- dplyr::select(Census_age_elec2019, LSOA11CD, "Local Authority Name",mean_de2019, "Proportion Over 65", prop_65m)
+head(de_age)
 # table(df$`LA Name`)
-df_2012$la_name <- df_2012$`LA Name` # make a new variable with an easier name
-df_2012$pcFuelPoor <- df_2012$`Proportion of households fuel poor (%)` # same - this is actually a % not a proportion!
+
+de_age$la_name <- de_age$`Local Authority Name` # make a new variable with an easier name
 # select the places we want here
 getSolent <- function(df){
   # assumes we are filtering on la_name
@@ -624,19 +621,19 @@ getSolent <- function(df){
                            )
 return(res)
 }
-Solent_2012 <- getSolent(df_2012) # use our function to get just Solent LAs
-nrow(Solent_2012)
-ggplot(Solent_2012, aes(x= 100 * prop_65m, 
-                   y= pcFuelPoor, 
+Solent_2019 <- getSolent(de_age) # use our function to get just Solent LAs
+nrow(Solent_2019)
+ggplot(Solent_2019, aes(x= 100 * prop_65m, 
+                   y= mean_de2019, 
                    colour = la_name)) + # use colour for each LA
   geom_point() +
   geom_smooth() + # adds a smoothed best fit line
   theme(legend.position = "None") + # otherwise we get the colour legend at the side
   labs(x = "% aged > 65, 2011 Census",
-       y = "% households in fuel poverty, 2012") +
+       y = "Domestic Electricity COnsumption") +
   facet_wrap(. ~ la_name) # draws a separate plot for each LA (in a different colour)
-message("Correlation coeficient across al LSOAs (2012)")
-cor(Solent_2012$prop_65m, Solent_2012$pcFuelPoor)
+message("Correlation coeficient across all LSOAs (2019)")
+cor(Solent_2019$prop_65m, Solent_2019$mean_de2019)
 ```
 
 
