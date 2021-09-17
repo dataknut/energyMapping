@@ -295,6 +295,21 @@ cor(Solent_2019$prop_65m, Solent_2019$mean_de2019)
 ggplot(de_age, aes(x= 100 * prop_65m, 
                    y= mean_de2019))+ geom_point()
 ```
+```{r over 65s and electricity with OAC codes}
+oac_df <- readr::read_csv(paste0(dataFolder, "oac/lsoa-oac-data.csv"))
+oac_df$la_name <- oac_df$`LA Name`
+oac_df$LSOA11CD <- oac_df$`SOA Code`
+solent_oac_df <- getSolent(oac_df)
+df <- merge(Solent_2019, oac_df, by = "LSOA11CD")
+ggplot(df, aes(x= 100 * prop_65m, 
+                   y= mean_de2019, 
+                   colour = `LA Name`)) + # use colour for each LA
+  geom_point() +
+  #theme(legend.position = "None") + # otherwise we get the colour legend at the side
+  labs(x = "% aged > 65, 2011 Census",
+       y = "Electricity Consumption (kWh per meter)") +
+  facet_wrap(. ~ `Supergroup Name`) # draws a separate plot for each LA (in a different colour)
+```
 
 
 
