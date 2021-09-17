@@ -111,6 +111,19 @@ ggplot(solent_dep, aes(x = as.factor(IMD_Decile), # forces a box plot at each va
 
 > So remember: IMD Decile 1 = 10% _most_ deprived; IMD Decile 10 = 10% _least_ deprived
 
+```{r Loading in the Census age data}
+inFile<-paste0(dataFolder, "census/KS102EW-age-categories.csv")
+census_age<-readr::read_csv (inFile)
+census_age$'LSOA11CD'<- census_age$'geography code'
+census_age$prop_65m <- census_age$`Over 65s`/census_age$`Age: All usual residents; measures: Value`
+head(census_age)
+names(census_age)
+message("Original Proportion Over 65:")
+summary(census_age$`Proportion Over 65`)
+message("New prop_65m:")
+summary(census_age$prop_65m)
+```
+
 # Domestic Electricity consumption
 
 ## 2019
@@ -234,18 +247,6 @@ ggplot(df, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
 ```
 
 ### Plotting over 65s against dom elec consumption 
-```{r Loading in the Census age data}
-inFile<-paste0(dataFolder, "census/KS102EW-age-categories.csv")
-census_age<-readr::read_csv (inFile)
-census_age$'LSOA11CD'<- census_age$'geography code'
-census_age$prop_65m <- census_age$`Over 65s`/census_age$`Age: All usual residents; measures: Value`
-head(census_age)
-names(census_age)
-message("Original Proportion Over 65:")
-summary(census_age$`Proportion Over 65`)
-message("New prop_65m:")
-summary(census_age$prop_65m)
-```
 ```{r Plotting elec consumption in the over 65s}
 domelec_LSOA_2019$LSOA11CD <- domelec_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
 Census_age_elec2019 <- merge(domelec_LSOA_2019, census_age, by = "LSOA11CD")
@@ -591,18 +592,6 @@ ggplot2::ggplot(mapData) +
   labs(caption = "Winchester")
 ```
 ### Plotting gas usage against proportion of over 65s
-```{r Loading in the Census age data}
-inFile<-paste0(dataFolder, "census/KS102EW-age-categories.csv")
-census_age<-readr::read_csv (inFile)
-census_age$'LSOA11CD'<- census_age$'geography code'
-census_age$prop_65m <- census_age$`Over 65s`/census_age$`Age: All usual residents; measures: Value`
-head(census_age)
-names(census_age)
-message("Original Proportion Over 65:")
-summary(census_age$`Proportion Over 65`)
-message("New prop_65m:")
-summary(census_age$prop_65m)
-```
 ```{r Plotting gas consumption in the over 65s}
 domgas_LSOA_2019$LSOA11CD <- domgas_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
 Census_age_gas2019 <- merge(domgas_LSOA_2019, census_age, by = "LSOA11CD")
