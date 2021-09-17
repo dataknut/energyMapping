@@ -46,9 +46,7 @@ if(user == "ben"){
 message("User: ", user)
 message("dataFolder: ", dataFolder)
 ```
-
-# Mapping the Middle Layer Super Output Areas (MSOA)
-
+# Background Data
 ```{r Loading in the Boundary Data for the MSOA}
 inf <-paste0(dataFolder, "boundaries/MSOA/msoa_solent.shp")
 message("Loading Middle Layer Super Output Area (MSOA) from file")
@@ -57,10 +55,8 @@ msoa_sf_data <- sf::read_sf(inf)
 head (msoa_sf_data)
 table(msoa_sf_data$LAD11NM)#how many MSOAs are in each LA
 ```
-
-## Mapping Commercial
-### Mapping Electricty
-####2019
+# Mapping Electricty
+##2019
 ```{r Loading in the MSOA electricity consumption data for industry }
 # electricity consumption data for industry at MSOA level (pre downloaded)
 inFile <-paste0(dataFolder, "energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2019.csv")
@@ -78,7 +74,7 @@ ggplot2::ggplot(msoa_merged_sf_nondom) +
 #mapping it
 mean(msoa_merged_sf_nondom$`Mean consumption (kWh per meter)`)
 ```
-####Map Overlay
+###Map Overlay
 ```{r Check leaflet for non dom elec consumption}
 library (leaflet)
 
@@ -107,7 +103,7 @@ leaflet(map_df_trans) %>%
                 bringToFront = TRUE))
 
 ```
-####Difference from 2010 to 2019
+##Difference from 2010 to 2019
 ```{r Creating the mean electricty consumption from the industrial sector MOSA}
 ndelec_msoa_2010<-readr::read_csv(paste0(dataFolder,"energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2010.csv"))
 ndelec_msoa_2019<-readr::read_csv(paste0(dataFolder,"/energy/electricity/MSOA NonDom Elec csv/MSOA_NONDOM_2019.csv"))
@@ -131,7 +127,7 @@ head(arrange(t_diff, -pc_diff))
 ggplot2::ggplot(t_diff, aes(x=pc_diff)) +
   geom_histogram()
 ```
-####Map with Overlay
+###Map with Overlay
 ```{r Check leaflet for change in non dom elec consumption}
 library(leaflet)
 
@@ -158,14 +154,12 @@ leaflet(map_df_trans) %>%
                 bringToFront = TRUE))
 
 ```
-
-
 ```{r Mapping the percentage change in mean electricty consumption from the industrial sector MOSA}
 merged_ndelec$MSOA11CD<-merged_ndelec$"Middle Layer Super Output Area (MSOA) Code"
 msoa_nd20102019<-merge(msoa_sf_data, merged_ndelec) #merging these
 ggplot2::ggplot(msoa_nd20102019)+geom_sf(aes(fill=ndelec_diff/ndelec2010))+scale_fill_continuous(name="Change in electricty:Mean kWh per meter",low="green",high="red")+labs(caption ="Solent (all MSOAs)")##Why does this look like this? Increased efficiency? Businesses closing down?
 ```
-#####Cities in more detail
+###Cities in more detail
 ```{r Southampton MSOA difference in non dom Elec}
 #Cities such as Southampton disappear due to their density, we will now map Southampton alone to see this area in more detail
 mapData <- dplyr::filter(msoa_nd20102019, LAD11NM == "Southampton")
@@ -193,8 +187,8 @@ ggplot2::ggplot(mapData) +
   scale_fill_continuous(name = "Change in Mean comsumpton (kWh per meter)", low = "green", high = "red") +
   labs(caption = "Winchester")
 ```
-### Mapping Gas
-####2019
+# Mapping Gas
+##2019
 ```{r Loading in the MSOA gas consumption data for industry }
 # gas consumption data for industry at MSOA level (pre downloaded)
 inFile <-paste0(dataFolder, "energy/gas/MSOA NonDom Gas csv/MSOA_NonDom_Gas_2019.csv")
@@ -213,7 +207,7 @@ ggplot2::ggplot(msoa_merged_ndgas) +
 ```
 > The holes tell you where there is no non-domestic gas use
 
-####Mapping the difference in non domestic gas from 2010 to 2019 
+##Mapping the difference in non domestic gas from 2010 to 2019 
 ```{r Creating the difference in non domestic gas consumption in the MSOA}
 msoa_2010_ndgas<-readr::read_csv(paste0(dataFolder,"/energy/gas/MSOA NonDom Gas csv/MSOA_NonDom_Gas_2010.csv"))
 msoa_2019_ndgas<-readr::read_csv(paste0(dataFolder,"energy/gas/MSOA NonDom Gas csv/MSOA_NonDom_Gas_2019.csv"))
@@ -246,7 +240,7 @@ ggplot2::ggplot(t_diff, aes(x=pc_diff))+
   geom_histogram()
 
 ```
-####Map with Overlay
+###Map with Overlay
 ```{r Check leaflet for Change in non dom gas consumption}
 library(leaflet)
 
