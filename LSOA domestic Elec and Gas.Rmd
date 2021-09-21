@@ -234,6 +234,7 @@ ggplot(df, aes(x = as.factor(IMD_Decile), # forces a box plot at each value
 ```
 
 ### Plotting over 65s against dom elec consumption 
+
 ```{r Loading in the Census age data}
 inFile<-paste0(dataFolder, "census/KS102EW-age-categories.csv")
 census_age<-readr::read_csv (inFile)
@@ -246,6 +247,7 @@ summary(census_age$`Proportion Over 65`)
 message("New prop_65m:")
 summary(census_age$prop_65m)
 ```
+
 ```{r Plotting elec consumption in the over 65s}
 #BROKEN
 #domelec_LSOA_2019$LSOA11CD <-domelec_LSOA_2019$`Local Authority Name`
@@ -300,7 +302,7 @@ cor(Solent_2019$prop_65m, Solent_2019$mean_de2019)
 
 
 
-```{r ageOACAndElec}
+```{r ageOACAndElec, fig.width=6}
 # you'll need this data (on sharepoint)
 oac_df <- readr::read_csv(paste0(dataFolder, "oac/lsoa-oac-data.csv"))
 
@@ -599,18 +601,7 @@ ggplot2::ggplot(mapData) +
   labs(caption = "Winchester")
 ```
 ### Plotting gas usage against proportion of over 65s
-```{r Loading in the Census age data}
-inFile<-paste0(dataFolder, "census/KS102EW-age-categories.csv")
-census_age<-readr::read_csv (inFile)
-census_age$'LSOA11CD'<- census_age$'geography code'
-census_age$prop_65m <- census_age$`Over 65s`/census_age$`Age: All usual residents; measures: Value`
-head(census_age)
-names(census_age)
-message("Original Proportion Over 65:")
-summary(census_age$`Proportion Over 65`)
-message("New prop_65m:")
-summary(census_age$prop_65m)
-```
+
 ```{r Plotting gas consumption in the over 65s}
 domelec_LSOA_2019$LSOA11CD <- domelec_LSOA_2019$`Lower Layer Super Output Area (LSOA) Code`
 Census_age_elec2019 <- merge(domelec_LSOA_2019, census_age, by = "LSOA11CD")
