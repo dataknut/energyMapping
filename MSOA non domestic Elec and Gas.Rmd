@@ -33,8 +33,8 @@ library(dplyr)
 # GIS libraries
 library(raster)
 library(sf)
-library(spData)
-library(spDataLarge)
+#library(spData)
+#library(spDataLarge)
 
 dataFolder<-"/Users/megha/Desktop/1. Uni/Masters/Project/Mapping Code/data/" # default for Meghan
 user <- Sys.info()[[7]] # who are we logged in as?
