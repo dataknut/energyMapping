@@ -16,7 +16,7 @@ getSolent <- function(df){
                             la_name == "Havant"|
                             la_name == "New Forest"|
                             la_name == "Portsmouth"|
-                            #la_name == "Rushmoor"| # northern Hampshire - not always considered part of Solent
+                            la_name == "Rushmoor"| # northern Hampshire - not always considered part of Solent
                             la_name == "Southampton"|
                             la_name == "Test Valley"|
                             la_name == "Winchester"|
